@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DJIBY SHOP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:white;
+    color:black;
+}
+
+header{
+    background:black;
+    color:white;
+    padding:20px;
+}
+
+.logo-box{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:15px;
+}
+
+.logo-box img{
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    object-fit:cover;
+    border:3px solid white;
+}
+
+.logo-box span{
+    font-size:42px;
+    font-weight:bold;
+}
+
+nav{
+    background:#f2f2f2;
+    padding:15px;
+    text-align:center;
+}
+
+nav a{
+    color:black;
+    text-decoration:none;
+    margin:10px;
+    font-weight:bold;
+}
+
+.hero{
+    text-align:center;
+    padding:50px 20px;
+}
+
+.hero h1{
+    font-size:45px;
+}
+
+.hero p{
+    font-size:22px;
+}
+
+.btn{
+    display:block;
+    background:black;
+    color:white;
+    text-align:center;
+    padding:14px;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.section-title{
+    text-align:center;
+    font-size:35px;
+    margin-top:50px;
+}
+
+.products{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:15px;
+    padding:15px;
+}
+
+
+.card{
+    background:white;
+    border:2px solid black;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 5px 15px rgba(0,0,0,0.15);
+}
+
+.card img{
+    width:100%;
+    height:230px;
+    object-fit:cover;
+}
+
+.card-content{
+    padding:20px;
+}
+
+.card h2{
+    font-size:24px;
+}
+
+.price{
+    font-size:22px;
+    font-weight:bold;
+    margin:15px 0;
+}
+
+.videos{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+    gap:25px;
+    padding:30px;
+}
+
+.video-box{
+    border:2px solid black;
+    border-radius:20px;
+    padding:15px;
+    text-align:center;
+}
+
+video{
+    width:100%;
+    border-radius:15px;
+}
+
+footer{
+    background:black;
+    color:white;
+    text-align:center;
+    padding:30px;
+    margin-top:50px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo-box">
+<img src="dale.jpeg">
+<span>DJIBY SHOP</span>
+</div>
+</header>
+
+<nav>
+<a href="#produits">Articles</a>
+<a href="#videos">Vidéos</a>
+<a href="#contact">WhatsApp</a>
+</nav>
+<div class="search-box">
+
+<input type="text"
+id="searchInput"
+placeholder="Rechercher un article..."
+onkeyup="searchProducts()">
+
+</div>
+
+<section class="hero">
+<h1>Bienvenue sur DJIBY SHOP 🛒</h1>
+<p>Articles de qualité — Commande directe sur WhatsApp</p>
+<a class="btn" href="https://wa.me/33745098191" target="_blank">Commander maintenant</a>
+</section>
+
+<h1 id="produits" class="section-title">Nos Articles</h1>
+
+<section class="products">
+
+<!-- 40 ARTICLES -->
+<div class="card"><img src="photo.jpeg"><div class="card-content"><h2>Article 1</h2><div class="description">
+
+
+• Bonne qualité  
+• Livraison disponible  
+• Nouveau modèle  
+• Disponible maintenant
+
+</div><div class="price">10000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 1" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article2.jpg"><div class="card-content"><h2>Article 2</h2><p>Description de l’article.</p><div class="price">3500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 2" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article3.jpg"><div class="card-content"><h2>Article 3</h2><p>Description de l’article.</p><div class="price">4000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 3" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article4.jpg"><div class="card-content"><h2>Article 4</h2><p>Description de l’article.</p><div class="price">4500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 4" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article5.jpg"><div class="card-content"><h2>Article 5</h2><p>Description de l’article.</p><div class="price">5000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 5" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article6.jpg"><div class="card-content"><h2>Article 6</h2><p>Description de l’article.</p><div class="price">5500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 6" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article7.jpg"><div class="card-content"><h2>Article 7</h2><p>Description de l’article.</p><div class="price">6000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 7" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article8.jpg"><div class="card-content"><h2>Article 8</h2><p>Description de l’article.</p><div class="price">6500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 8" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article9.jpg"><div class="card-content"><h2>Article 9</h2><p>Description de l’article.</p><div class="price">7000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 9" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article10.jpg"><div class="card-content"><h2>Article 10</h2><p>Description de l’article.</p><div class="price">7500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 10" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article11.jpg"><div class="card-content"><h2>Article 11</h2><p>Description de l’article.</p><div class="price">8000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 11" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article12.jpg"><div class="card-content"><h2>Article 12</h2><p>Description de l’article.</p><div class="price">8500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 12" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article13.jpg"><div class="card-content"><h2>Article 13</h2><p>Description de l’article.</p><div class="price">9000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 13" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article14.jpg"><div class="card-content"><h2>Article 14</h2><p>Description de l’article.</p><div class="price">9500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 14" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article15.jpg"><div class="card-content"><h2>Article 15</h2><p>Description de l’article<div class="description">
+
+
+• Bonne qualité  
+• Livraison disponible  
+• Nouveau modèle  
+• Disponible maintenant
+
+</div>.</p><div class="price">10000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 15" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article16.jpg"><div class="card-content"><h2>Article 16</h2><div class="price">10500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 16" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article17.jpg"><div class="card-content"><h2>Article 17</h2><p>Description de l’article.</p><div class="price">11000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 17" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article18.jpg"><div class="card-content"><h2>Article 18</h2><p>Description de l’article.</p><div class="price">11500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 18" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article19.jpg"><div class="card-content"><h2>Article 19</h2><p>Description de l’article.</p><div class="price">12000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 19" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article20.jpg"><div class="card-content"><h2>Article 20</h2><p>Description de l’article.</p><div class="price">12500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 20" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article21.jpg"><div class="card-content"><h2>Article 21</h2><p>Description de l’article.</p><div class="price">13000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 21" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article22.jpg"><div class="card-content"><h2>Article 22</h2><p>Description de l’article.</p><div class="price">13500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 22" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article23.jpg"><div class="card-content"><h2>Article 23</h2><p>Description de l’article.</p><div class="price">14000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 23" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article24.jpg"><div class="card-content"><h2>Article 24</h2><p>Description de l’article.</p><div class="price">14500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 24" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article25.jpg"><div class="card-content"><h2>Article 25</h2><p>Description de l’article.</p><div class="price">15000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 25" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article26.jpg"><div class="card-content"><h2>Article 26</h2><p>Description de l’article.</p><div class="price">15500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 26" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article27.jpg"><div class="card-content"><h2>Article 27</h2><p>Description de l’article.</p><div class="price">16000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 27" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article28.jpg"><div class="card-content"><h2>Article 28</h2><p>Description de l’article.</p><div class="price">16500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 28" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article29.jpg"><div class="card-content"><h2>Article 29</h2><p>Description de l’article.</p><div class="price">17000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 29" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article30.jpg"><div class="card-content"><h2>Article 30</h2><p>Description de l’article.</p><div class="price">17500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 30" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article31.jpg"><div class="card-content"><h2>Article 31</h2><p>Description de l’article.</p><div class="price">18000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 31" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article32.jpg"><div class="card-content"><h2>Article 32</h2><p>Description de l’article.</p><div class="price">18500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 32" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article33.jpg"><div class="card-content"><h2>Article 33</h2><p>Description de l’article.</p><div class="price">19000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 33" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article34.jpg"><div class="card-content"><h2>Article 34</h2><p>Description de l’article.</p><div class="price">19500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 34" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article35.jpg"><div class="card-content"><h2>Article 35</h2><p>Description de l’article.</p><div class="price">20000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 35" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article36.jpg"><div class="card-content"><h2>Article 36</h2><p>Description de l’article.</p><div class="price">20500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 36" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article37.jpg"><div class="card-content"><h2>Article 37</h2><p>Description de l’article.</p><div class="price">21000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 37" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article38.jpg"><div class="card-content"><h2>Article 38</h2><p>Description de l’article.</p><div class="price">21500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 38" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article39.jpg"><div class="card-content"><h2>Article 39</h2><p>Description de l’article.</p><div class="price">22000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 39" target="_blank">Commander</a></div></div>
+<div class="card"><img src="article40.jpg"><div class="card-content"><h2>Article 40</h2><p>Description de l’article.</p><div class="price">22500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Article 40" target="_blank">Commander</a></div></div>
+
+</section>
+
+<h1 id="videos" class="section-title">Vidéos des Articles</h1>
+
+<section class="videos">
+<div class="video-box"><video controls><source src="video1.mp4" type="video/mp4"></video><h2>Vidéo Article 1</h2></div>
+<div class="video-box"><video controls><source src="video2.mp4" type="video/mp4"></video><h2>Vidéo Article 2</h2></div>
+<div class="video-box"><video controls><source src="video3.mp4" type="video/mp4"></video><h2>Vidéo Article 3</h2></div>
+<div class="video-box"><video controls><source src="video4.mp4" type="video/mp4"></video><h2>Vidéo Article 4</h2></div>
+</section>
+
+<section id="contact" class="hero">
+<h1>Commander sur WhatsApp</h1>
+<p>Clique ici pour commander ou payer directement.</p>
+<a class="btn" href="https://wa.me/33745098191" target="_blank">WhatsApp DJIBY SHOP</a>
+</section>
+
+<footer>
+© 2026 DJIBY SHOP - Tous droits réservés
+</footer>
+
+<script>
+
+function searchProducts(){
+
+let input =
+document.getElementById("searchInput")
+.value.toLowerCase();
+
+let cards =
+document.getElementsByClassName("card");
+
+for(let i = 0; i < cards.length; i++){
+
+let title =
+cards[i]
+.getElementsByTagName("h2")[0]
+.innerText
+.toLowerCase();
+
+if(title.includes(input)){
+cards[i].style.display = "block";
+}else{
+cards[i].style.display = "none";
+}
+
+}
+
+}
+
+</script>
+
+.description{
+    margin-top:15px;
+    margin-bottom:15px;
+    line-height:1.8;
+    font-size:17px;
+    background:#f5f5f5;
+    padding:15px;
+    border-radius:12px;
+}
+</body>
+</html>

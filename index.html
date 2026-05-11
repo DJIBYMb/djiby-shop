@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <title>DJIBY SHOP</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-
 body{
     margin:0;
     font-family:Arial, sans-serif;
@@ -15,12 +12,11 @@ body{
     color:black;
 }
 
-/* HEADER */
-
 header{
     background:black;
     color:white;
     padding:20px;
+    text-align:center;
 }
 
 .logo-box{
@@ -31,19 +27,17 @@ header{
 }
 
 .logo-box img{
-    width:70px;
-    height:70px;
+    width:65px;
+    height:65px;
     border-radius:50%;
     object-fit:cover;
     border:3px solid white;
 }
 
 .logo-box span{
-    font-size:42px;
+    font-size:35px;
     font-weight:bold;
 }
-
-/* MENU */
 
 nav{
     background:#f2f2f2;
@@ -58,7 +52,10 @@ nav a{
     font-weight:bold;
 }
 
-/* SEARCH */
+.hero{
+    text-align:center;
+    padding:35px 20px;
+}
 
 .search-box{
     text-align:center;
@@ -66,464 +63,301 @@ nav a{
 }
 
 .search-box input{
-    width:80%;
+    width:85%;
     max-width:500px;
     padding:15px;
-    border-radius:15px;
     border:2px solid black;
+    border-radius:15px;
     font-size:18px;
 }
 
-/* HERO */
-
-.hero{
-    text-align:center;
-    padding:45px 20px;
+.products{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:15px;
+    padding:15px;
 }
 
-.hero h1{
-    font-size:45px;
+.card{
+    border:2px solid black;
+    border-radius:18px;
+    overflow:hidden;
+    background:white;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
 }
 
-.hero p{
-    font-size:22px;
+.card img{
+    width:100%;
+    height:250px;
+    object-fit:cover;
+    cursor:pointer;
 }
 
-/* BUTTON */
+.card-content{
+    padding:15px;
+}
+
+.card h2{
+    font-size:20px;
+    margin:5px 0;
+}
+
+.description{
+    background:#f5f5f5;
+    padding:12px;
+    border-radius:12px;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.price{
+    font-size:20px;
+    font-weight:bold;
+    margin:12px 0;
+}
 
 .btn{
     display:block;
     background:black;
     color:white;
     text-align:center;
-    padding:14px;
+    padding:12px;
     border-radius:10px;
     text-decoration:none;
     font-weight:bold;
 }
 
-/* TITLES */
-
-.section-title{
-    text-align:center;
-    font-size:35px;
-    margin-top:50px;
-}
-
-/* PRODUCTS */
-
-.products{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:20px;
-    padding:30px;
-}
-
-.card{
-    background:white;
-    border:2px solid black;
-    border-radius:20px;
-    overflow:hidden;
-    box-shadow:0 5px 15px rgba(0,0,0,0.15);
-}
-
-/* IMAGE */
-
-.image-box{
-    display:block;
-    overflow:hidden;
-}
-
-.image-box img{
+#bigImage{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
     width:100%;
-    height:230px;
-    object-fit:cover;
-    display:block;
-    transition:0.3s;
+    height:100%;
+    background:black;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
 }
 
-.image-box img:hover{
-    transform:scale(1.05);
+#bigImage img{
+    max-width:90%;
+    max-height:85%;
 }
 
-/* CARD */
-
-.card-content{
-    padding:20px;
+.back{
+    position:absolute;
+    top:20px;
+    left:20px;
+    color:white;
+    font-size:45px;
+    cursor:pointer;
 }
 
-.card h2{
-    font-size:24px;
+#topBtn{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    width:55px;
+    height:55px;
+    border-radius:50%;
+    border:none;
+    background:black;
+    color:white;
+    font-size:28px;
+    cursor:pointer;
 }
 
-.description{
-    margin-top:15px;
-    margin-bottom:15px;
-    line-height:1.8;
-    font-size:17px;
-    background:#f5f5f5;
-    padding:15px;
-    border-radius:12px;
-}
-
-.price{
-    font-size:22px;
-    font-weight:bold;
-    margin:15px 0;
-}
-
-/* VIDEOS */
-
-.videos{
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
-    gap:25px;
-    padding:30px;
-}
-
-.video-box{
-    border:2px solid black;
-    border-radius:20px;
-    padding:15px;
-    text-align:center;
-}
-
-video{
-    width:100%;
-    border-radius:15px;
-}
-
-/* FOOTER */
-
-footer{
+.contact{
     background:black;
     color:white;
     text-align:center;
-    padding:30px;
-    margin-top:50px;
+    padding:35px 20px;
 }
 
-/* MOBILE */
-
-@media(max-width:700px){
-
-.products{
-    grid-template-columns:repeat(2,1fr);
-    gap:12px;
-    padding:12px;
+.contact a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    margin:15px auto;
+    padding:15px;
+    border:2px solid white;
+    border-radius:12px;
+    max-width:350px;
 }
 
-.card h2{
-    font-size:18px;
+footer{
+    background:#111;
+    color:white;
+    text-align:center;
+    padding:20px;
 }
 
-.description{
-    font-size:14px;
-    padding:10px;
-}
+@media(max-width:600px){
+    .products{
+        grid-template-columns:repeat(2, 1fr);
+        gap:10px;
+        padding:10px;
+    }
 
-.logo-box span{
-    font-size:28px;
-}
+    .card img{
+        height:130px;
+    }
 
-.hero h1{
-    font-size:30px;
-}
+    .card h2{
+        font-size:16px;
+    }
 
-}
+    .description{
+        font-size:12px;
+        padding:8px;
+    }
 
+    .price{
+        font-size:16px;
+    }
+
+    .btn{
+        font-size:13px;
+        padding:10px;
+    }
+}
 </style>
-
 </head>
 
 <body>
 
-<!-- HEADER -->
-
 <header>
-
 <div class="logo-box">
-
 <img src="logo.png">
-
 <span>DJIBY SHOP</span>
-
 </div>
-
 </header>
 
-<!-- MENU -->
-
 <nav>
-
 <a href="#produits">Articles</a>
-
-<a href="#videos">Vidéos</a>
-
-<a href="#contact">WhatsApp</a>
-
+<a href="#contact">Contact</a>
 </nav>
 
-<!-- SEARCH -->
+<section class="hero">
+<h1>Bienvenue sur DJIBY SHOP 🛒</h1>
+<p>Produits de qualité — Commande directe sur WhatsApp</p>
+</section>
 
 <div class="search-box">
-
-<input type="text"
-id="searchInput"
-placeholder="Rechercher un article..."
-onkeyup="searchProducts()">
-
+<input type="text" id="searchInput" placeholder="Rechercher un produit..." onkeyup="searchProducts()">
 </div>
 
-<!-- HERO -->
+<section id="produits" class="products">
 
-<section class="hero">
+<div class="card"><img src="photo.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 1</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">3000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 1" target="_blank">Commander</a></div></div>
 
-<h1>Bienvenue sur DJIBY SHOP 🛒</h1>
+<div class="card"><img src="article2.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 2</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">3500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 2" target="_blank">Commander</a></div></div>
 
-<p>Articles de qualité — Commande directe sur WhatsApp</p>
+<div class="card"><img src="article3.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 3</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">4000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 3" target="_blank">Commander</a></div></div>
 
-<a class="btn"
-href="https://wa.me/33745098191"
-target="_blank">
-Commander maintenant
-</a>
+<div class="card"><img src="article4.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 4</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">4500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 4" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article5.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 5</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">5000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 5" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article6.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 6</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">5500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 6" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article7.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 7</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">6000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 7" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article8.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 8</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">6500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 8" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article9.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 9</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">7000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 9" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article10.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 10</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">7500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 10" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article11.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 11</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">8000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 11" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article12.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 12</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">8500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 12" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article13.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 13</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">9000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 13" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article14.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 14</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">9500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 14" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article15.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 15</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">10000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 15" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article16.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 16</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">10500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 16" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article17.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 17</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">11000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 17" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article18.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 18</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">11500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 18" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article19.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 19</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">12000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 19" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article20.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 20</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">12500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 20" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article21.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 21</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">13000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 21" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article22.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 22</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">13500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 22" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article23.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 23</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">14000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 23" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article24.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 24</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">14500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 24" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article25.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 25</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">15000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 25" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article26.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 26</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">15500 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 26" target="_blank">Commander</a></div></div>
+
+<div class="card"><img src="article27.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 27</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">16000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 27" target="_blank">Commander</a></div></div>
 
 </section>
 
-<!-- PRODUCTS -->
+<section id="contact" class="contact">
+<h2>Contact DJIBY SHOP</h2>
 
-<h1 id="produits" class="section-title">
-Nos Articles
-</h1>
+<a href="mailto:tonemail@gmail.com">📧 tonemail@gmail.com</a>
 
-<section class="products">
+<a href="https://www.tiktok.com/@djibydufox1" target="_blank">🎵 Mon TikTok</a>
 
-<!-- ARTICLE 1 -->
-
-<div class="card">
-
-<a class="image-box"
-href="photo.jpeg"
-target="_blank">
-
-<img src="photo.jpeg">
-
-</a>
-
-<div class="card-content">
-
-<h2>Chaussure</h2>
-
-<div class="description">
-
-Description complète de l’article :<br>
-
-• Bonne qualité<br>
-• Livraison disponible<br>
-• Nouveau modèle<br>
-• Disponible maintenant
-
-</div>
-
-<div class="price">
-10000 FCFA
-</div>
-
-<a class="btn"
-href="https://wa.me/33745098191?text=Bonjour je veux commander Chaussure"
-target="_blank">
-
-Commander
-
-</a>
-
-</div>
-</div>
-
-<!-- ARTICLE 2 -->
-
-<div class="card">
-
-<a class="image-box"
-href="article2.jpg"
-target="_blank">
-
-<img src="article2.jpg">
-
-</a>
-
-<div class="card-content">
-
-<h2>Article 2</h2>
-
-<div class="description">
-
-Description complète de l’article :<br>
-
-• Bonne qualité<br>
-• Livraison disponible<br>
-• Nouveau modèle<br>
-• Disponible maintenant
-
-</div>
-
-<div class="price">
-3500 FCFA
-</div>
-
-<a class="btn"
-href="https://wa.me/33745098191"
-target="_blank">
-
-Commander
-
-</a>
-
-</div>
-</div>
-
-<!-- ARTICLE 3 -->
-
-<div class="card">
-
-<a class="image-box"
-href="sama.jpeg"
-target="_blank">
-
-<img src="sama.jpeg">
-
-</a>
-
-<div class="card-content">
-
-<h2>Article 3</h2>
-
-<div class="description">
-
-Description complète de l’article :<br>
-
-• Bonne qualité<br>
-• Livraison disponible<br>
-• Nouveau modèle<br>
-• Disponible maintenant
-
-</div>
-
-<div class="price">
-4000 FCFA
-</div>
-
-<a class="btn"
-href="https://wa.me/33745098191"
-target="_blank">
-
-Commander
-
-</a>
-
-</div>
-</div>
-
+<a href="https://wa.me/33745098191" target="_blank">💬 WhatsApp</a>
 </section>
-
-<!-- VIDEOS -->
-
-<h1 id="videos" class="section-title">
-
-Vidéos des Articles
-
-</h1>
-
-<section class="videos">
-
-<div class="video-box">
-
-<video controls>
-
-<source src="video1.mp4" type="video/mp4">
-
-</video>
-
-<h2>Vidéo Article 1</h2>
-
-</div>
-
-<div class="video-box">
-
-<video controls>
-
-<source src="video2.mp4" type="video/mp4">
-
-</video>
-
-<h2>Vidéo Article 2</h2>
-
-</div>
-
-</section>
-
-<!-- CONTACT -->
-
-<section id="contact" class="hero">
-
-<h1>Commander sur WhatsApp</h1>
-
-<p>Clique ici pour commander directement.</p>
-
-<a class="btn"
-href="https://wa.me/33745098191"
-target="_blank">
-
-WhatsApp DJIBY SHOP
-
-</a>
-
-</section>
-
-<!-- FOOTER -->
 
 <footer>
-
 © 2026 DJIBY SHOP - Tous droits réservés
-
 </footer>
 
-<!-- SEARCH SCRIPT -->
+<div id="bigImage">
+<span class="back" onclick="hideImage()">⬅</span>
+<img id="bigImagePhoto">
+</div>
+
+<button id="topBtn" onclick="goTop()">⬆</button>
 
 <script>
+function showImage(src){
+    document.getElementById("bigImage").style.display = "flex";
+    document.getElementById("bigImagePhoto").src = src;
+}
+
+function hideImage(){
+    document.getElementById("bigImage").style.display = "none";
+}
+
+function goTop(){
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+}
 
 function searchProducts(){
+    let input = document.getElementById("searchInput").value.toLowerCase();
+    let cards = document.getElementsByClassName("card");
 
-let input =
-document.getElementById("searchInput")
-.value.toLowerCase();
+    for(let i = 0; i < cards.length; i++){
+        let title = cards[i].getElementsByTagName("h2")[0].innerText.toLowerCase();
 
-let cards =
-document.getElementsByClassName("card");
-
-for(let i = 0; i < cards.length; i++){
-
-let title =
-cards[i]
-.getElementsByTagName("h2")[0]
-.innerText
-.toLowerCase();
-
-if(title.includes(input)){
-
-cards[i].style.display = "block";
-
-}else{
-
-cards[i].style.display = "none";
-
+        if(title.includes(input)){
+            cards[i].style.display = "block";
+        }else{
+            cards[i].style.display = "none";
+        }
+    }
 }
-
-}
-
-}
-
 </script>
 
 </body>

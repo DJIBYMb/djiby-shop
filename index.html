@@ -15,7 +15,7 @@ nav a{color:black;text-decoration:none;margin:10px;font-weight:bold}
 .products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px}
 .card{border:2px solid black;border-radius:15px;overflow:hidden;box-shadow:0 4px 10px #aaa}
 .slider{position:relative}
-.slider img{width:100%;height:140px;object-fit:cover;cursor:pointer}
+.slider img{width:100%;height:250px;object-fit:cover;cursor:pointer}
 .slide-btn{position:absolute;top:45%;background:black;color:white;border:none;border-radius:50%;width:30px;height:30px}
 .prev{left:5px}
 .next{right:5px}
@@ -99,21 +99,254 @@ nav a{color:black;text-decoration:none;margin:10px;font-weight:bold}
 const API_URL = "https://djibybackenddjiby.onrender.com";
 let selectedProduct = null;
 
-const products = [];
-for(let i=1;i<=27;i++){
-  products.push({
-    id:i,
-    name:"Produit " + i,
-    price:3000 + i * 500,
-    images:[
-      "article" + i + "-1.jpg",
-      "article" + i + "-2.jpg",
-      "article" + i + "-3.jpg"
-    ],
-    current:0,
-    description:"• Bonne qualité<br>• Livraison disponible au Sénégal<br>• Produit vérifié<br>• Disponible maintenant"
-  });
+const products = [
+
+
+{
+id:1,
+name:"Produit 1",
+price:5000,
+images:["id.jpeg","ij.jpeg","p1-3.jpeg"],
+current:0,
+description:"• Bonne qualité<br>• Livraison Sénégal"
+},
+
+{
+id:2,
+name:"Produit 2",
+price:5500,
+images:["p2-1.jpeg","p2-2.jpeg","p2-3.jpeg"],
+current:0,
+description:"• Produit vérifié<br>• Disponible"
+},
+
+{
+id:3,
+name:"Produit 3",
+price:6000,
+images:["p3-1.jpeg","p3-2.jpeg","p3-3.jpeg"],
+current:0,
+description:"• Haute qualité<br>• Livraison rapide"
+},
+
+{
+id:4,
+name:"Produit 4",
+price:6500,
+images:["p4-1.jpeg","p4-2.jpeg","p4-3.jpeg"],
+current:0,
+description:"• Nouveau modèle<br>• Disponible maintenant"
+},
+
+{
+id:5,
+name:"Produit 5",
+price:7000,
+images:["p5-1.jpeg","p5-2.jpeg","p5-3.jpeg"],
+current:0,
+description:"• Bonne finition<br>• Produit populaire"
+},
+
+{
+id:6,
+name:"Produit 6",
+price:7500,
+images:["p6-1.jpeg","p6-2.jpeg","p6-3.jpeg"],
+current:0,
+description:"• Très bonne qualité<br>• Livraison disponible"
+},
+
+{
+id:7,
+name:"Produit 7",
+price:8000,
+images:["p7-1.jpeg","p7-2.jpeg","p7-3.jpeg"],
+current:0,
+description:"• Design moderne<br>• Disponible"
+},
+
+{
+id:8,
+name:"Produit 8",
+price:8500,
+images:["p8-1.jpeg","p8-2.jpeg","p8-3.jpeg"],
+current:0,
+description:"• Produit vérifié<br>• Qualité premium"
+},
+
+{
+id:9,
+name:"Produit 9",
+price:9000,
+images:["p9-1.jpeg","p9-2.jpeg","p9-3.jpeg"],
+current:0,
+description:"• Livraison Sénégal<br>• Bon état"
+},
+
+{
+id:10,
+name:"Produit 10",
+price:9500,
+images:["p10-1.jpeg","p10-2.jpeg","p10-3.jpeg"],
+current:0,
+description:"• Produit populaire<br>• Disponible"
+},
+
+{
+id:11,
+name:"Produit 11",
+price:10000,
+images:["p11-1.jpeg","p11-2.jpeg","p11-3.jpeg"],
+current:0,
+description:"• Bonne qualité<br>• Livraison rapide"
+},
+
+{
+id:12,
+name:"Produit 12",
+price:10500,
+images:["p12-1.jpeg","p12-2.jpeg","p12-3.jpeg"],
+current:0,
+description:"• Produit original<br>• Disponible"
+},
+
+{
+id:13,
+name:"Produit 13",
+price:11000,
+images:["p13-1.jpeg","p13-2.jpeg","p13-3.jpeg"],
+current:0,
+description:"• Très demandé<br>• Haute qualité"
+},
+
+{
+id:14,
+name:"Produit 14",
+price:11500,
+images:["p14-1.jpeg","p14-2.jpeg","p14-3.jpeg"],
+current:0,
+description:"• Design élégant<br>• Livraison possible"
+},
+
+{
+id:15,
+name:"Produit 15",
+price:12000,
+images:["p15-1.jpeg","p15-2.jpeg","p15-3.jpeg"],
+current:0,
+description:"• Produit neuf<br>• Disponible maintenant"
+},
+
+{
+id:16,
+name:"Produit 16",
+price:12500,
+images:["p16-1.jpeg","p16-2.jpeg","p16-3.jpeg"],
+current:0,
+description:"• Bonne finition<br>• Produit vérifié"
+},
+
+{
+id:17,
+name:"Produit 17",
+price:13000,
+images:["p17-1.jpeg","p17-2.jpeg","p17-3.jpeg"],
+current:0,
+description:"• Qualité premium<br>• Disponible"
+},
+
+{
+id:18,
+name:"Produit 18",
+price:13500,
+images:["p18-1.jpeg","p18-2.jpeg","p18-3.jpeg"],
+current:0,
+description:"• Livraison rapide<br>• Bon produit"
+},
+
+{
+id:19,
+name:"Produit 19",
+price:14000,
+images:["p19-1.jpeg","p19-2.jpeg","p19-3.jpeg"],
+current:0,
+description:"• Très bonne qualité<br>• Disponible"
+},
+
+{
+id:20,
+name:"Produit 20",
+price:14500,
+images:["p20-1.jpeg","p20-2.jpeg","p20-3.jpeg"],
+current:0,
+description:"• Produit tendance<br>• Livraison Sénégal"
+},
+
+{
+id:21,
+name:"Produit 21",
+price:15000,
+images:["p21-1.jpeg","p21-2.jpeg","p21-3.jpeg"],
+current:0,
+description:"• Produit premium<br>• Disponible"
+},
+
+{
+id:22,
+name:"Produit 22",
+price:15500,
+images:["p22-1.jpeg","p22-2.jpeg","p22-3.jpeg"],
+current:0,
+description:"• Design moderne<br>• Haute qualité"
+},
+
+{
+id:23,
+name:"Produit 23",
+price:16000,
+images:["p23-1.jpeg","p23-2.jpeg","p23-3.jpeg"],
+current:0,
+description:"• Produit neuf<br>• Disponible"
+},
+
+{
+id:24,
+name:"Produit 24",
+price:16500,
+images:["p24-1.jpeg","p24-2.jpeg","p24-3.jpeg"],
+current:0,
+description:"• Livraison rapide<br>• Produit vérifié"
+},
+
+{
+id:25,
+name:"Produit 25",
+price:17000,
+images:["p25-1.jpeg","p25-2.jpeg","p25-3.jpeg"],
+current:0,
+description:"• Très populaire<br>• Disponible"
+},
+
+{
+id:26,
+name:"Produit 26",
+price:17500,
+images:["p26-1.jpeg","p26-2.jpeg","p26-3.jpeg"],
+current:0,
+description:"• Bonne qualité<br>• Livraison Sénégal"
+},
+
+{
+id:27,
+name:"Produit 27",
+price:18000,
+images:["p27-1.jpeg","p27-2.jpeg","p27-3.jpeg"],
+current:0,
+description:"• Produit premium<br>• Disponible maintenant"
 }
+
+];
+
 
 function checkRobot(){
   if(document.getElementById("robotAnswer").value == "7"){

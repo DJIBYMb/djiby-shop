@@ -72,7 +72,7 @@ app.get("/test", function(req,res){
   });
 });
 
-const API_URL = "https://TON-BACKEND.onrender.com";
+const API_URL = "https://djibybackenddjiby.onrender.com";
 
 app.listen(PORT, function(){
   console.log("Backend lancé sur le port " + PORT);

@@ -61,7 +61,20 @@ app.post("/create-payment", async function(req,res){
     });
   }
 });
+app.get("/", function(req,res){
+  res.send("Backend DJIBY SHOP fonctionne 🔥");
+});
 
-app.listen(8000,function(){
-  console.log("Backend lancé sur http://localhost:8000");
+app.get("/test", function(req,res){
+  res.json({
+    success:true,
+    message:"HTML connecté au backend 🔥"
+  });
+});
+
+const API_URL = "https://TON-BACKEND.onrender.com";
+
+app.listen(PORT, function(){
+  console.log("Backend lancé sur le port " + PORT);
+
 });

@@ -5,370 +5,88 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:white;
-    color:black;
-}
-
-header{
-    background:black;
-    color:white;
-    padding:20px;
-    text-align:center;
-}
-
-.logo-box{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:15px;
-}
-
-.logo-box img{
-    width:65px;
-    height:65px;
-    border-radius:50%;
-    object-fit:cover;
-    border:3px solid white;
-}
-
-.logo-box span{
-    font-size:35px;
-    font-weight:bold;
-}
-
-nav{
-    background:#f2f2f2;
-    padding:15px;
-    text-align:center;
-}
-
-nav a{
-    color:black;
-    text-decoration:none;
-    margin:10px;
-    font-weight:bold;
-}
-
-.hero{
-    text-align:center;
-    padding:35px 20px;
-}
-
-.search-box{
-    text-align:center;
-    padding:20px;
-}
-
-.search-box input{
-    width:85%;
-    max-width:500px;
-    padding:15px;
-    border:2px solid black;
-    border-radius:15px;
-    font-size:18px;
-}
-
-.products{
-    display:grid;
-    grid-template-columns:repeat(2, 1fr);
-    gap:15px;
-    padding:15px;
-}
-
-.card{
-    border:2px solid black;
-    border-radius:18px;
-    overflow:hidden;
-    background:white;
-    box-shadow:0 4px 12px rgba(0,0,0,0.15);
-}
-
-.card img{
-    width:100%;
-    height:250px;
-    object-fit:cover;
-    cursor:pointer;
-}
-
-.card-content{
-    padding:15px;
-}
-
-.card h2{
-    font-size:20px;
-    margin:5px 0;
-}
-
-.description{
-    background:#f5f5f5;
-    padding:12px;
-    border-radius:12px;
-    font-size:14px;
-    line-height:1.6;
-}
-
-.price{
-    font-size:20px;
-    font-weight:bold;
-    margin:12px 0;
-}
-
-.btn{
-    display:block;
-    background:black;
-    color:white;
-    text-align:center;
-    padding:12px;
-    border-radius:10px;
-    text-decoration:none;
-    font-weight:bold;
-}
-
-#bigImage{
-    display:none;
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:black;
-    justify-content:center;
-    align-items:center;
-    z-index:9999;
-}
-
-#bigImage img{
-    max-width:90%;
-    max-height:85%;
-}
-
-.back{
-    position:absolute;
-    top:20px;
-    left:20px;
-    color:white;
-    font-size:45px;
-    cursor:pointer;
-}
-
-#topBtn{
-    position:fixed;
-    right:20px;
-    bottom:20px;
-    width:55px;
-    height:55px;
-    border-radius:50%;
-    border:none;
-    background:black;
-    color:white;
-    font-size:28px;
-    cursor:pointer;
-}
-
-.contact{
-    background:black;
-    color:white;
-    text-align:center;
-    padding:35px 20px;
-}
-
-.contact a{
-    display:block;
-    color:white;
-    text-decoration:none;
-    margin:15px auto;
-    padding:15px;
-    border:2px solid white;
-    border-radius:12px;
-    max-width:350px;
-}
-
-footer{
-    background:#111;
-    color:white;
-    text-align:center;
-    padding:20px;
-}
-
-@media(max-width:600px){
-    .products{
-        grid-template-columns:repeat(2, 1fr);
-        gap:10px;
-        padding:10px;
-    }
-
-    .card img{
-        height:130px;
-    }
-
-    .card h2{
-        font-size:16px;
-    }
-
-    .description{
-        font-size:12px;
-        padding:8px;
-    }
-
-    .price{
-        font-size:16px;
-    }
-
-    .btn{
-        font-size:13px;
-        padding:10px;
-    }
-}
-.payment{
-    padding:30px;
-}
-
-.payment h1{
-    text-align:center;
-    margin-bottom:30px;
-}
-
-.payment form{
-    max-width:500px;
-    margin:auto;
-    display:flex;
-    flex-direction:column;
-    gap:15px;
-}
-
-.payment input{
-    padding:15px;
-    border:2px solid black;
-    border-radius:12px;
-    font-size:16px;
-}
-
-.payment button{
-    padding:15px;
-    background:black;
-    color:white;
-    border:none;
-    border-radius:12px;
-    font-size:18px;
-    cursor:pointer;
-}
+body{margin:0;font-family:Arial;background:white;color:black}
+header{background:black;color:white;text-align:center;padding:20px;font-size:34px;font-weight:bold}
+nav{text-align:center;background:#eee;padding:15px}
+nav a{color:black;text-decoration:none;margin:10px;font-weight:bold}
+.hero{text-align:center;padding:30px}
+.search{text-align:center;padding:15px}
+.search input{width:85%;max-width:500px;padding:15px;border:2px solid black;border-radius:12px}
+.products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px}
+.card{border:2px solid black;border-radius:15px;overflow:hidden;box-shadow:0 4px 10px #aaa}
+.slider{position:relative}
+.slider img{width:100%;height:140px;object-fit:cover;cursor:pointer}
+.slide-btn{position:absolute;top:45%;background:black;color:white;border:none;border-radius:50%;width:30px;height:30px}
+.prev{left:5px}
+.next{right:5px}
+.content{padding:12px}
+.desc{background:#f4f4f4;padding:10px;border-radius:10px;font-size:13px}
+.price{font-weight:bold;margin:10px 0;font-size:18px}
+.btn{background:black;color:white;padding:12px;border:none;border-radius:10px;width:100%;font-weight:bold}
+.contact{background:black;color:white;text-align:center;padding:30px}
+.contact a{display:block;color:white;text-decoration:none;margin:12px}
+#topBtn{position:fixed;right:20px;bottom:20px;border-radius:50%;width:55px;height:55px;background:black;color:white;font-size:25px}
+.modal,#robot,#bigImage{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);justify-content:center;align-items:center;z-index:9999}
+#robot{display:flex}
+.box{background:white;color:black;padding:25px;border-radius:20px;width:90%;max-width:420px;text-align:center}
+.box input{width:100%;padding:13px;margin:8px 0;border:2px solid black;border-radius:10px;box-sizing:border-box}
+#bigImage img{max-width:90%;max-height:85%}
+.back{position:absolute;top:20px;left:20px;color:white;font-size:45px;cursor:pointer}
 </style>
 </head>
 
 <body>
 
-<header>
-<div class="logo-box">
-<img src="md.jpeg">
-<span>DJIBY SHOP</span>
+<div id="robot">
+  <div class="box">
+    <h2>Vérification sécurité</h2>
+    <p>Combien fait 4 + 3 ?</p>
+    <input id="robotAnswer" type="number" placeholder="Réponse">
+    <button class="btn" onclick="checkRobot()">Entrer</button>
+    <p id="robotError"></p>
+  </div>
 </div>
-</header>
+
+<header>DJIBY SHOP</header>
 
 <nav>
-<a href="#produits">Articles</a>
+<a href="#products">Articles</a>
 <a href="#contact">Contact</a>
 </nav>
 
 <section class="hero">
 <h1>Bienvenue sur DJIBY SHOP 🛒</h1>
-<p>Produits de qualité — Commande directe sur WhatsApp</p>
+<p>Produits de qualité — paiement sécurisé</p>
 </section>
 
-<div class="search-box">
-<input type="text" id="searchInput" placeholder="Rechercher un produit..." onkeyup="searchProducts()">
+<div class="search">
+<input id="searchInput" onkeyup="searchProducts()" placeholder="Rechercher un produit...">
 </div>
 
-<section id="produits" class="products">
-
-<div class="card"><img src="photo.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>chaussure</h2><div class="description">•Talon Haut Blanc Brillant, Semelle Épaisse avec Bride et Strass, Légères et Polyvalentes, Chaussures pour Femme Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">10000 FCFA</div><a class="btn" href="https://pydu.me/djiby-shopjcmlo4" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="sm.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>robe</h2><div class="description">•Mode Femme - Robe Maxi Plissée à Manches Longues avec Ceinture Décorée Métallique et Lanterne au Cou pour Trajet Quotidien, Rendez-vous, Soirée, Vacances Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">8000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 2" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="dm.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>bijoux de nez</h2><div class="description">•Ensemble de 3 pièces de bijoux de nez pour femmes, tendance, réglables en forme de U - Motifs fleur de prunier et cœur - Bijoux de nez pour usage quotidien, idée cadeau Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">5000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 3" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="dl.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>robe</h2><div class="description">•Élégante robe moulante à manches longues et col en V avec imprimé floral | Longueur longue, ourlet sirène, coupe skinny, idéale pour le printemps/été/automne Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">10000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 4" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="cl.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>collier</h2><div class="description">•Élégante robe moulante à manches longues et col en V avec imprimé floral | Longueur longue, ourlet sirène, coupe skinny, idéale pour le printemps/été/automne Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">4000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 5" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="my.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>pose xef</h2><div class="description">•200 Bouquets de Faux Cils Individuels 30D 40D 80D 120D Pack Mixte A01 Simple Plaque Multi-Style Courbure C 0.07Mm Simulation Naturelle Facile à Porter Idéal Débutant Fête Mariage Scène Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">1000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 6" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="po.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>lunettes</h2><div class="description">•Larges Lunettes Rondes à Monture Transparente, Lunettes Décoratives Rétro Tendance pour Ordinateur, Femmes et Hommes, Style Décontracté Adapté, et un Cadeau Pratique et Tendance pour les Fêtes ou l'Utilisation Quotidienne avec des Tons et des Ajouts Élégants. Tous les Tons de Lunettes pour Femmes S'Accordent Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">1500 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 7" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="lu.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>lunettes</h2><div class="description">•1pc Lunettes Femme Nouveau Design Œil de Chat, Monture Tendance et Élégante, Monture Métallique Avancée. Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">2000 FCFA</div><a class="btn" href="https://wa.me/33745098191?text=Bonjour je veux commander Produit 8" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="mk.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>makeup</h2><div class="description">•Jit1pc, un étui de Cosmétique avec pinceaux et rouge à lèvres, est léger, pliable et dispose d'un design zippé. Il est lavable en machine et portable pour le rangement | Accessoire élégant | Fermeture à glissière, petite pochette de Cosmétique Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">3000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 9" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="sama.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>collier</h2><div class="description">•Un Collier de Perles Imitation Élégant et Unique et une Paire de Boucles d'Oreilles Pendantes en Perles Imitation Stylées et Distinctives pour Femmes Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">2600 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 10" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="sc.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>sac à main</h2><div class="description">•Sac à main Premium Feel Design de niche Femme Tendance Nouveau Sac de corps décontracté Texture haut de gamme Mode Ensemble multi-pièces Sac à bandoulière Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">9000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 11" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="ij.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>robe</h2><div class="description">•Ensemble de peignoir ouvert avec dentelle, robe de nuit sans manches et foulard en mousseline - Léger, facile et respirant, vêtements arabes Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">14000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 12" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="id.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>abaya</h2><div class="description">•1pc Longue Foulard Musulman Femme Prière avec Attache pour Abaya, Longue et Pratique, Foulard Musulman Prêt à Porter avec Attache pour Abaya Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">4000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 13" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="im.jpeg" onclick="showImage(this.src)"><div class="card-content"><h2>foulard</h2><div class="description">•1pc Foulard Hijab Musulman Femme avec Strass Robuste Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">3500 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 14" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article15.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 15</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">10000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 15" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article16.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 16</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">10500 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 16" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article17.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 17</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">11000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 17" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article18.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 18</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">11500 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 18" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article19.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 19</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">12000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 19" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article20.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 20</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">12500 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 20" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article21.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 21</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">13000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 21" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article22.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 22</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">13500 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 22" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article23.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 23</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">14000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 23" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article24.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 24</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">14500 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 24" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article25.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 25</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">15000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 25" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article26.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 26</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">15500 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 26" target="_blank">Commander</a></div></div>
-
-<div class="card"><img src="article27.jpg" onclick="showImage(this.src)"><div class="card-content"><h2>Produit 27</h2><div class="description">• Bonne qualité<br>• Livraison disponible<br>• Nouveau modèle<br>• Disponible maintenant</div><div class="price">16000 FCFA</div><a class="btn" href="https://wa.me/221787035727?text=Bonjour je veux commander Produit 27" target="_blank">Commander</a></div></div>
-
-</section>
+<section id="products" class="products"></section>
 
 <section id="contact" class="contact">
-<h2>Contact DJIBY SHOP</h2>
-
-<a href="mailto:djibyshop14@gmail.com">📧 mail</a>
-
-<a href="https://www.tiktok.com/@djibyshop" target="_blank"> TikTok</a>
-
-<a href="https://wa.me/221787035727" target="_blank">💬 WhatsApp</a>
-</section>
-<section id="contact">
-
-...
-
+<h2>Contact</h2>
+<a href="mailto:tonemail@gmail.com">📧 tonemail@gmail.com</a>
+<a href="https://www.tiktok.com/@dji.efootbal" target="_blank">🎵 Mon TikTok</a>
+<a href="https://wa.me/33745098191" target="_blank">💬 WhatsApp</a>
 </section>
 
-<section class="payment">
-<h1>Paiement sécurisé</h1>
+<div id="orderModal" class="modal">
+  <div class="box">
+    <h2>Informations client</h2>
+    <p id="selectedText"></p>
 
-<p>Clique sur le bouton pour payer avec PayDunya.</p>
-
-<a class="btn"
-href="https://ecommerce.paydunya.com/djiby-shopJcMLo4"
-target="_blank">
-Payer avec PayDunya
-</a>
-
-</section>
-<footer>
-© 2026 DJIBY SHOP - Tous droits réservés
-</footer>
+    <form id="orderForm">
+      <input id="firstName" placeholder="Prénom" required>
+      <input id="lastName" placeholder="Nom de famille" required>
+      <input id="email" type="email" placeholder="Email" required>
+      <input id="phone" placeholder="Téléphone Sénégal" required>
+      <input id="address" placeholder="Adresse Sénégal" required>
+      <button class="btn" type="submit">Continuer vers paiement</button>
+    </form>
+  </div>
+</div>
 
 <div id="bigImage">
 <span class="back" onclick="hideImage()">⬅</span>
@@ -378,38 +96,124 @@ Payer avec PayDunya
 <button id="topBtn" onclick="goTop()">⬆</button>
 
 <script>
-function showImage(src){
-    document.getElementById("bigImage").style.display = "flex";
-    document.getElementById("bigImagePhoto").src = src;
+const API_URL = "http://localhost:8000";
+let selectedProduct = null;
+
+const products = [];
+for(let i=1;i<=27;i++){
+  products.push({
+    id:i,
+    name:"Produit " + i,
+    price:3000 + i * 500,
+    images:[
+      "article" + i + "-1.jpg",
+      "article" + i + "-2.jpg",
+      "article" + i + "-3.jpg"
+    ],
+    current:0,
+    description:"• Bonne qualité<br>• Livraison disponible au Sénégal<br>• Produit vérifié<br>• Disponible maintenant"
+  });
 }
 
-function hideImage(){
-    document.getElementById("bigImage").style.display = "none";
+function checkRobot(){
+  if(document.getElementById("robotAnswer").value == "7"){
+    document.getElementById("robot").style.display="none";
+  }else{
+    document.getElementById("robotError").innerText="Réponse incorrecte";
+  }
 }
 
-function goTop(){
-    window.scrollTo({
-        top:0,
-        behavior:"smooth"
-    });
+function renderProducts(list){
+  const box=document.getElementById("products");
+  box.innerHTML="";
+
+  list.forEach(p=>{
+    box.innerHTML += `
+      <div class="card">
+        <div class="slider">
+          <button class="slide-btn prev" onclick="changeImage(${p.id}, -1)">‹</button>
+          <img id="img-${p.id}" src="${p.images[p.current]}" onclick="showImage(this.src)">
+          <button class="slide-btn next" onclick="changeImage(${p.id}, 1)">›</button>
+        </div>
+
+        <div class="content">
+          <h2>${p.name}</h2>
+          <div class="desc">${p.description}</div>
+          <div class="price">${p.price} FCFA</div>
+          <button class="btn" onclick="openOrder(${p.id})">Payer ce produit</button>
+        </div>
+      </div>`;
+  });
+}
+
+function changeImage(id, direction){
+  const p = products.find(item => item.id === id);
+  p.current = p.current + direction;
+
+  if(p.current < 0){
+    p.current = p.images.length - 1;
+  }
+
+  if(p.current >= p.images.length){
+    p.current = 0;
+  }
+
+  document.getElementById("img-" + id).src = p.images[p.current];
 }
 
 function searchProducts(){
-    let input = document.getElementById("searchInput").value.toLowerCase();
-    let cards = document.getElementsByClassName("card");
-
-    for(let i = 0; i < cards.length; i++){
-        let title = cards[i].getElementsByTagName("h2")[0].innerText.toLowerCase();
-
-        if(title.includes(input)){
-            cards[i].style.display = "block";
-        }else{
-            cards[i].style.display = "none";
-        }
-    }
+  const text=document.getElementById("searchInput").value.toLowerCase();
+  renderProducts(products.filter(p=>p.name.toLowerCase().includes(text)));
 }
-</script>
 
+function openOrder(id){
+  selectedProduct=products.find(p=>p.id===id);
+  document.getElementById("selectedText").innerText=selectedProduct.name+" - "+selectedProduct.price+" FCFA";
+  document.getElementById("orderModal").style.display="flex";
+}
+
+document.getElementById("orderForm").addEventListener("submit",function(e){
+  e.preventDefault();
+
+  const customer={
+    firstName:document.getElementById("firstName").value,
+    lastName:document.getElementById("lastName").value,
+    email:document.getElementById("email").value,
+    phone:document.getElementById("phone").value,
+    address:document.getElementById("address").value
+  };
+
+  fetch(API_URL+"/create-payment",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({product:selectedProduct,customer:customer})
+  })
+  .then(res=>res.json())
+  .then(data=>{
+    if(data.success){
+      window.location.href=data.payment_url;
+    }else{
+      alert("Erreur paiement : "+data.message);
+    }
+  })
+  .catch(()=>alert("Backend non connecté"));
+});
+
+function showImage(src){
+  document.getElementById("bigImage").style.display="flex";
+  document.getElementById("bigImagePhoto").src=src;
+}
+
+function hideImage(){
+  document.getElementById("bigImage").style.display="none";
+}
+
+function goTop(){
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+renderProducts(products);
+</script>
 
 </body>
 </html>

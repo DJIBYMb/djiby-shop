@@ -43,6 +43,8 @@ app.post("/create-payment", async function(req,res){
 
     invoice.addItem(product.name,1,product.price,product.price,details);
     invoice.totalAmount = product.price;
+    invoice.description =
+    "🛒 Merci de commander chez DJIBY SHOP.\n\n✅ Produits de qualité\n✅ Livraison disponible\n✅ Service rapide\n\n📞 WhatsApp : 33745098191\n📧 Email : djibyshop@gmail.com\n🎉 Merci pour votre confiance ❤️";
 
     await invoice.create();
 

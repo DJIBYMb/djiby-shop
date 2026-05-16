@@ -111,6 +111,56 @@ console.log("❌ Paiement non validé");
 res.send("ROK");
 
 });
+app.post("/ipn", function(req, res){
+
+  console.log("✅ IPN PayDunya reçu :", req.body);
+
+  const status = req.body.status;
+
+  if(status === "completed" || status === "success"){
+
+    console.log("✅ Paiement confirmé :", {
+      status:"payé",
+      data:req.body
+    });
+
+  }else{
+
+    console.log("❌ Paiement non confirmé :", {
+      status:"échoué",
+      data:req.body
+    });
+
+  }
+
+  res.send("ROK");
+
+});
+app.post("/ipn", function(req, res){
+
+console.log("✅ IPN PayDunya reçu :", req.body);
+
+const status = req.body.status;
+
+if(status === "completed" || status === "success"){
+
+console.log({
+status:"payé",
+data:req.body
+});
+
+}else{
+
+console.log({
+status:"échoué",
+data:req.body
+});
+
+}
+
+res.send("ROK");
+
+});
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, function(){

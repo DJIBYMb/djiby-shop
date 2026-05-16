@@ -6,6 +6,7 @@ const paydunya = require("paydunya");
 dotenv.config();
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
@@ -24,16 +25,26 @@ const store = new paydunya.Store({
   websiteURL: process.env.SITE_URL
 });
 
-app.get("/test", function(req,res){
-  res.json({success:true,message:"HTML connecté au backend 🔥"});
+app.get("/", function(req, res){
+  res.send("Backend DJIBY SHOP fonctionne 🔥");
 });
 
-app.post("/create-payment", async function(req,res){
+app.get("/test", function(req, res){
+  res.json({
+    success: true,
+    message: "HTML connecté au backend 🔥"
+  });
+});
+
+app.post("/create-payment", async function(req, res){
   try{
     const { product, customer } = req.body;
 
     if(!product || !customer){
-      return res.json({success:false,message:"Produit ou client manquant"});
+      return res.json({
+        success: false,
+        message: "Produit ou client manquant"
+      });
     }
 
     const invoice = new paydunya.CheckoutInvoice(setup, store);
@@ -41,42 +52,47 @@ app.post("/create-payment", async function(req,res){
     const details =
     `Client: ${customer.firstName} ${customer.lastName} | Email: ${customer.email} | Téléphone: ${customer.phone} | Adresse: ${customer.address}`;
 
-    invoice.addItem(product.name,1,product.price,product.price,details);
+    invoice.addItem(
+      product.name,
+      1,
+      product.price,
+      product.price,
+      details
+    );
+
     invoice.totalAmount = product.price;
+
+    invoice.returnURL = "https://djibymb.github.io/djiby-shop/success.html";
+
     invoice.description =
     "🛒 Merci de commander chez DJIBY SHOP.\n\n✅ Produits de qualité\n✅ Livraison disponible\n✅ Service rapide\n\n📞 WhatsApp : 33745098191\n📧 Email : djibyshop@gmail.com\n🎉 Merci pour votre confiance ❤️";
 
     await invoice.create();
 
-    console.log("Nouvelle commande :", {product, customer});
+    console.log("Nouvelle commande :", {
+      product,
+      customer,
+      status: "en attente"
+    });
 
     res.json({
-      success:true,
-      payment_url:invoice.url
+      success: true,
+      status: "en attente",
+      payment_url: invoice.url
     });
 
   }catch(error){
     console.log(error);
+
     res.json({
-      success:false,
-      message:error.message || "Erreur PayDunya"
+      success: false,
+      message: error.message || "Erreur PayDunya"
     });
   }
 });
-app.get("/", function(req,res){
-  res.send("Backend DJIBY SHOP fonctionne 🔥");
-});
 
-app.get("/test", function(req,res){
-  res.json({
-    success:true,
-    message:"HTML connecté au backend 🔥"
-  });
-});
-
-const API_URL = "https://djibybackenddjiby.onrender.com";
+const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, function(){
-  console.log("Backend lancé sur le port " + PORT);
-
+  console.log("Backend lancé sur http://localhost:" + PORT);
 });

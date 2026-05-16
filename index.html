@@ -96,17 +96,18 @@ nav a{color:black;text-decoration:none;margin:10px;font-weight:bold}
 <button id="topBtn" onclick="goTop()">⬆</button>
 
 <script>
+
 const API_URL = "https://djibybackenddjiby.onrender.com";
+
 let selectedProduct = null;
 
 const products = [
-
 
 {
 id:1,
 name:"Produit 1",
 price:5000,
-images:["id.jpeg","ij.jpeg","p1-3.jpeg"],
+images:["p1-1.jpeg","p1-2.jpeg","p1-3.jpeg"],
 current:0,
 description:"• Bonne qualité<br>• Livraison Sénégal"
 },
@@ -328,25 +329,25 @@ description:"• Très populaire<br>• Disponible"
 },
 
 {
+
 id:26,
 name:"Produit 26",
-price:17500,
+price:17000,
 images:["p26-1.jpeg","p26-2.jpeg","p26-3.jpeg"],
 current:0,
-description:"• Bonne qualité<br>• Livraison Sénégal"
+description:"• Très populaire<br>• Disponible"
 },
 
 {
-id:27,
-name:"Produit 27",
-price:18000,
-images:["p27-1.jpeg","p27-2.jpeg","p27-3.jpeg"],
+id:26,
+name:"Produit 26",
+price:17000,
+images:["p26-1.jpeg","p26-2.jpeg","p26-3.jpeg"],
 current:0,
-description:"• Produit premium<br>• Disponible maintenant"
+description:"• Très populaire<br>• Disponible"
 }
 
 ];
-
 
 function checkRobot(){
   if(document.getElementById("robotAnswer").value == "7"){

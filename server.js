@@ -52,22 +52,15 @@ app.post("/create-payment", async function(req, res){
     const details =
     `Client: ${customer.firstName} ${customer.lastName} | Email: ${customer.email} | Téléphone: ${customer.phone} | Adresse: ${customer.address}`;
 
-    invoice.addItem(
-      product.name,
-      1,
-      product.price,
-      product.price,
-      details
-    );
+    invoice.addItem(product.name, 1, product.price, product.price, details);
 
     invoice.totalAmount = product.price;
 
     invoice.returnURL = "https://djibymb.github.io/djiby-shop/success.html";
-
     invoice.callbackURL = "https://djibybackenddjiby.onrender.com/ipn";
 
     invoice.description =
-    "🛒 Merci de commander chez DJIBY SHOP.\n\n✅ Produits de qualité\n✅ Livraison disponible\n✅ Service rapide\n\n📞 WhatsApp : 33745098191\n📧 Email : djibyshop@gmail.com\n🎉 Merci pour votre confiance ❤️";
+    "Merci de commander chez DJIBY SHOP. Produits de qualité. Livraison disponible. WhatsApp : 33745098191";
 
     await invoice.create();
 
@@ -84,7 +77,7 @@ app.post("/create-payment", async function(req, res){
     });
 
   }catch(error){
-    console.log(error);
+    console.log("ERREUR PAYDUNYA COMPLETE :", error);
 
     res.json({
       success: false,
@@ -92,75 +85,13 @@ app.post("/create-payment", async function(req, res){
     });
   }
 });
+
 app.post("/ipn", function(req, res){
-
-console.log("✅ IPN reçu :", req.body);
-
-const status = req.body.status;
-
-if(status === "completed" || status === "success"){
-
-console.log("✅ Paiement confirmé");
-
-}else{
-
-console.log("❌ Paiement non validé");
-
-}
-
-res.send("ROK");
-
-});
-app.post("/ipn", function(req, res){
-
-  console.log("✅ IPN PayDunya reçu :", req.body);
-
-  const status = req.body.status;
-
-  if(status === "completed" || status === "success"){
-
-    console.log("✅ Paiement confirmé :", {
-      status:"payé",
-      data:req.body
-    });
-
-  }else{
-
-    console.log("❌ Paiement non confirmé :", {
-      status:"échoué",
-      data:req.body
-    });
-
-  }
+  console.log("IPN PayDunya reçu :", req.body);
 
   res.send("ROK");
-
-});
-app.post("/ipn", function(req, res){
-
-console.log("✅ IPN PayDunya reçu :", req.body);
-
-const status = req.body.status;
-
-if(status === "completed" || status === "success"){
-
-console.log({
-status:"payé",
-data:req.body
 });
 
-}else{
-
-console.log({
-status:"échoué",
-data:req.body
-});
-
-}
-
-res.send("ROK");
-
-});
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, function(){

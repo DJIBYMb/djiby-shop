@@ -64,6 +64,8 @@ app.post("/create-payment", async function(req, res){
 
     invoice.returnURL = "https://djibymb.github.io/djiby-shop/success.html";
 
+    invoice.callbackURL = "https://djibybackenddjiby.onrender.com/ipn";
+
     invoice.description =
     "🛒 Merci de commander chez DJIBY SHOP.\n\n✅ Produits de qualité\n✅ Livraison disponible\n✅ Service rapide\n\n📞 WhatsApp : 33745098191\n📧 Email : djibyshop@gmail.com\n🎉 Merci pour votre confiance ❤️";
 
@@ -90,7 +92,25 @@ app.post("/create-payment", async function(req, res){
     });
   }
 });
+app.post("/ipn", function(req, res){
 
+console.log("✅ IPN reçu :", req.body);
+
+const status = req.body.status;
+
+if(status === "completed" || status === "success"){
+
+console.log("✅ Paiement confirmé");
+
+}else{
+
+console.log("❌ Paiement non validé");
+
+}
+
+res.send("ROK");
+
+});
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, function(){

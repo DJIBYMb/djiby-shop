@@ -87,9 +87,29 @@ app.post("/create-payment", async function(req, res){
 });
 
 app.post("/ipn", function(req, res){
+
   console.log("IPN PayDunya reçu :", req.body);
 
+  const status = req.body.status;
+
+  if(status === "completed" || status === "success"){
+
+    console.log({
+      status:"payé",
+      data:req.body
+    });
+
+  }else{
+
+    console.log({
+      status:"échoué",
+      data:req.body
+    });
+
+  }
+
   res.send("ROK");
+
 });
 
 const PORT = process.env.PORT || 8000;

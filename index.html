@@ -131,11 +131,44 @@ const products = [
 ];
 
 function checkRobot(){
+
   if(document.getElementById("robotAnswer").value == "7"){
+
     document.getElementById("robot").style.display = "none";
+
+    // sauvegarde pendant 24h
+    localStorage.setItem("robot_ok", "true");
+
+    // temps actuel
+    localStorage.setItem("robot_time", Date.now());
+
   }else{
+
     document.getElementById("robotError").innerText = "Réponse incorrecte";
+
   }
+
+}
+
+// vérifie au chargement
+window.onload = function(){
+
+  const ok = localStorage.getItem("robot_ok");
+  const time = localStorage.getItem("robot_time");
+
+  if(ok === "true" && time){
+
+    const now = Date.now();
+
+    // 24h = 86400000 ms
+    if(now - time < 86400000){
+
+      document.getElementById("robot").style.display = "none";
+
+    }
+
+  }
+
 }
 
 function renderProducts(list){

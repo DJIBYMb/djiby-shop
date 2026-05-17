@@ -6,9 +6,27 @@
 
 <style>
 body{margin:0;font-family:Arial;background:white;color:black}
-header{background:black;color:white;text-align:center;padding:20px;font-size:34px;font-weight:bold}
+header{
+background:black;
+color:white;
+text-align:center;
+padding:20px;
+font-size:34px;
+font-weight:bold;
+
+display:flex;
+flex-direction:column;
+align-items:center;
+}
 nav{text-align:center;background:#eee;padding:15px}
 nav a{color:black;text-decoration:none;margin:10px;font-weight:bold}
+.logo{
+width:90px;
+height:90px;
+object-fit:cover;
+border-radius:50%;
+margin-bottom:10px;
+}
 .back-btn{
   position:absolute;
   top:20px;
@@ -60,7 +78,13 @@ nav a{color:black;text-decoration:none;margin:10px;font-weight:bold}
   </div>
 </div>
 
-<header>DJIBY SHOP</header>
+<header>
+
+<img src="md.jpeg" class="logo">
+
+<div>DJIBY SHOP</div>
+
+</header>
 
 <nav>
 <a href="#products">Articles</a>
@@ -80,8 +104,8 @@ nav a{color:black;text-decoration:none;margin:10px;font-weight:bold}
 
 <section id="contact" class="contact">
 <h2>Contact</h2>
-<a href="mailto:tonemail@gmail.com">📧 tonemail@gmail.com</a>
-<a href="https://www.tiktok.com/@dji.efootbal" target="_blank">🎵 Mon TikTok</a>
+<a href="mailto:djibyshop14@gmail.com">📧 mail</a>
+<a href="https://www.tiktok.com/@djibyshop" target="_blank">  TikTok</a>
 <a href="https://wa.me/33745098191" target="_blank">💬 WhatsApp</a>
 </section>
 

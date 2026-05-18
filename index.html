@@ -3,6 +3,8 @@
 <head>
 <title>DJIBY SHOP</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
 
 <style>
 body{margin:0;font-family:Arial;background:white;color:black}
@@ -333,6 +335,13 @@ function goTop(){
 }
 
 renderProducts(products);
+</script>
+<script>
+if("serviceWorker" in navigator){
+
+  navigator.serviceWorker.register("service-worker.js");
+
+}
 </script>
 
 </body>

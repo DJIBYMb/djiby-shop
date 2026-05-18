@@ -144,7 +144,7 @@ const products = [
 { id:1, name:"Produit 1", price:6600, stock:5, images:["gf.jpeg","gd.jpeg","gh.jpeg"], current:0, description:"• Bonne qualité<br>• Livraison gratuit<br>Nouvelle robe plissée élégante et tendance pour femmes, col en V, idéale pour les trajets quotidiens au printemps/automne" },
 { id:2, name:"Produit 2", price:5500, stock:10, images:["pe.jpeg","pg.jpeg","pd.jpeg"], current:0, description:"• Produit vérifié<br>• Disponible<br>.Brosse à cheveux électrique 2-en-1 pour lisser et boucler, utilisation sur cheveux secs ou humides, un outil de coiffure polyvalent" },
 { id:3, name:"Produit 3", price:7800, stock:8, images:["se.jpeg","sr.jpeg","st.jpeg"], current:0, description:"• Haute qualité<br>• Livraison partout au senegal<br>Mini Sac Bandoulière Carré à Fermeture Éclair avec Chaîne Dorée - Élégant, Beige et Marron, Idéal pour le Travail, le Bureau, les Fêtes et les Voyages, Sac de Bureau|Sac à Chaîne|Fermeture Éclair" },
-{ id:4, name:"Produit 4", price:6500, stock:12, images:["p4-1.jpeg","p4-2.jpeg","p4-3.jpeg"], current:0, description:"• Nouveau modèle<br>• Disponible maintenant" },
+{ id:4, name:"Produit 4", price:7900, stock:12, images:["ro.jpeg","rb.jpeg","re.jpeg"], current:0, description:"• Nouveau modèle<br>• Disponible maintenant<br>Robe de mariée pour femme, élégante et raffinée, imprimé floral, design à une épaule, taille cintrée, coupe trapèze longue, tenue de fête tendance" },
 { id:5, name:"Produit 5", price:7000, stock:6, images:["p5-1.jpeg","p5-2.jpeg","p5-3.jpeg"], current:0, description:"• Bonne finition<br>• Produit populaire" },
 { id:6, name:"Produit 6", price:7500, stock:9, images:["p6-1.jpeg","p6-2.jpeg","p6-3.jpeg"], current:0, description:"• Très bonne qualité<br>• Livraison disponible" },
 { id:7, name:"Produit 7", price:8000, stock:7, images:["p7-1.jpeg","p7-2.jpeg","p7-3.jpeg"], current:0, description:"• Design moderne<br>• Disponible" },
@@ -206,8 +206,24 @@ function renderProducts(list){
 }
 
 function searchProducts(){
-  const text = document.getElementById("searchInput").value.toLowerCase();
-  renderProducts(products.filter(p => p.name.toLowerCase().includes(text)));
+
+  const text =
+  document.getElementById("searchInput").value.toLowerCase();
+
+  renderProducts(
+
+    products.filter(p =>
+
+      p.name.toLowerCase().includes(text)
+
+      ||
+
+      p.description.toLowerCase().includes(text)
+
+    )
+
+  );
+
 }
 
 function showProductDetails(id){

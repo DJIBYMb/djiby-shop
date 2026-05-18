@@ -7,6 +7,13 @@ dotenv.config();
 
 const app = express();
 
+let stocks = {
+  1: 5,
+  2: 10,
+  3: 8,
+  4: 12,
+  5: 6
+};
 app.use(cors());
 app.use(express.json());
 
@@ -39,7 +46,15 @@ app.get("/test", function(req, res){
 app.post("/create-payment", async function(req, res){
   try{
     const { product, customer } = req.body;
+    
+    if(stocks[product.id] <= 0){
 
+  return res.json({
+    success: false,
+    message: "Ce produit est indisponible"
+  });
+
+}
     if(!product || !customer){
       return res.json({
         success: false,
@@ -64,6 +79,7 @@ app.post("/create-payment", async function(req, res){
 
     await invoice.create();
 
+    stocks[product.id] = stocks[product.id] - 1;
     console.log("Nouvelle commande :", {
       product,
       customer,

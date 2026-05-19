@@ -337,10 +337,16 @@ function goTop(){
 renderProducts(products);
 </script>
 <script>
-if("serviceWorker" in navigator){
-
-  navigator.serviceWorker.register("./service-worker.js");
-
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(function() {
+        console.log("Service worker OK");
+      })
+      .catch(function(error) {
+        console.log("Service worker erreur:", error);
+      });
+  });
 }
 </script>
 

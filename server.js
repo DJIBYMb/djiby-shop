@@ -87,12 +87,44 @@ db.exec(`
     status TEXT NOT NULL DEFAULT 'pending',
     created_at INTEGER NOT NULL
   );
+    CREATE TABLE IF NOT EXISTS order_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL CHECK(quantity > 0),
+    unit_price INTEGER NOT NULL CHECK(unit_price >= 0),
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+  );
 `);
+
+// =====================================
+// SUIVI DE PRÉPARATION DES COMMANDES
+// =====================================
+
+const colonnesOrders = db.prepare(
+  "PRAGMA table_info(orders)"
+).all();
+
+const fulfillmentExiste = colonnesOrders.some(
+  colonne => colonne.name === "fulfillment_status"
+);
+
+if (!fulfillmentExiste) {
+  db.exec(`
+    ALTER TABLE orders
+    ADD COLUMN fulfillment_status TEXT NOT NULL DEFAULT 'pending'
+  `);
+
+  console.log("Colonne fulfillment_status ajoutée");
+}
+
 
 const clean = product => ({
   ...product,
   images: JSON.parse(product.images)
 });
+
 
 function getProduct(id) {
   const product = db.prepare(
@@ -641,11 +673,11 @@ app.post("/create-payment", async (req, res) => {
 
     await invoice.create();
 
-    if (!invoice.url) {
-      throw new Error(
-        "Lien de paiement indisponible"
-      );
-    }
+    if (!invoice.url || !invoice.token) {
+  throw new Error(
+    "Lien ou token de paiement indisponible"
+  );
+}
 
     db.prepare(`
       INSERT INTO orders
@@ -681,6 +713,178 @@ app.post("/create-payment", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Impossible de créer le paiement"
+    });
+  }
+});
+
+// =====================================
+// PAIEMENT DU PANIER
+// =====================================
+
+app.post("/create-cart-payment", async (req, res) => {
+  try {
+    const items = req.body?.items;
+    const customer = req.body?.customer;
+
+    // Vérifier les informations du client
+    const champs = [
+      "firstName",
+      "lastName",
+      "email",
+      "phone",
+      "address"
+    ];
+
+    if (
+      !customer ||
+      !champs.every(
+        key =>
+          typeof customer[key] === "string" &&
+          customer[key].trim().length > 0 &&
+          customer[key].length < 250
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Informations client invalides"
+      });
+    }
+
+    // Vérifier le panier
+    if (
+      !Array.isArray(items) ||
+      items.length === 0 ||
+      items.length > 30
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Panier invalide"
+      });
+    }
+
+    const produits = [];
+    const ids = new Set();
+    let total = 0;
+
+    for (const item of items) {
+      const id = Number(item?.id);
+      const quantity = Number(item?.quantity);
+
+      if (
+        !Number.isSafeInteger(id) ||
+        id <= 0 ||
+        !Number.isSafeInteger(quantity) ||
+        quantity < 1 ||
+        quantity > 100 ||
+        ids.has(id)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Produit ou quantité invalide"
+        });
+      }
+
+      ids.add(id);
+
+      const product = getProduct(id);
+
+      if (!product || product.stock < quantity) {
+        return res.status(400).json({
+          success: false,
+          message: "Stock insuffisant pour un produit"
+        });
+      }
+
+      const sousTotal = product.price * quantity;
+
+      if (
+        !Number.isSafeInteger(sousTotal) ||
+        !Number.isSafeInteger(total + sousTotal)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Montant invalide"
+        });
+      }
+
+      total += sousTotal;
+
+      produits.push({
+        ...product,
+        quantity,
+        sousTotal
+      });
+    }
+
+    // Créer une facture PayDunya
+    const invoice = new paydunya.CheckoutInvoice(setup, store);
+
+    for (const product of produits) {
+      invoice.addItem(
+        product.name,
+        product.quantity,
+        product.price,
+        product.sousTotal
+      );
+    }
+
+    invoice.totalAmount = total;
+
+    invoice.returnURL = SITE_URL + "/success.html";
+    invoice.callbackURL = process.env.PUBLIC_API_URL + "/ipn";
+
+    invoice.description =
+      "Commande panier DJIBY SHOP";
+
+    await invoice.create();
+
+    if (!invoice.url || !invoice.token) {
+      throw new Error("Facture PayDunya incomplète");
+    }
+
+    // Enregistrer la commande et ses articles ensemble
+    const enregistrerCommande = db.transaction(() => {
+      const result = db.prepare(`
+        INSERT INTO orders
+        (product_id, customer, invoice_token, status, created_at)
+        VALUES (?, ?, ?, 'pending', ?)
+      `).run(
+        produits[0].id,
+        JSON.stringify(customer),
+        invoice.token,
+        Date.now()
+      );
+
+      const insertItem = db.prepare(`
+        INSERT INTO order_items
+        (order_id, product_id, quantity, unit_price)
+        VALUES (?, ?, ?, ?)
+      `);
+
+      for (const product of produits) {
+        insertItem.run(
+          result.lastInsertRowid,
+          product.id,
+          product.quantity,
+          product.price
+        );
+      }
+    });
+
+    enregistrerCommande();
+
+    res.json({
+      success: true,
+      status: "en attente",
+      payment_url: invoice.url
+    });
+
+  } catch (error) {
+    console.error("Erreur paiement panier :", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Impossible de créer le paiement du panier"
     });
   }
 });
@@ -726,29 +930,115 @@ app.post("/ipn", async function(req, res) {
 
     // Éviter de traiter deux fois la même commande
 
-    const confirmerCommande = db.transaction(() => {
+const confirmerCommande = db.transaction(() => {
 
-      const resultat = db.prepare(`
-        UPDATE orders
-        SET status = 'paid'
-        WHERE id = ?
-        AND status = 'pending'
-      `).run(commande.id);
+  // Vérifier que la commande est encore en attente
+  const commandeEnAttente = db.prepare(`
+    SELECT id, product_id
+    FROM orders
+    WHERE id = ?
+    AND status = 'pending'
+  `).get(commande.id);
 
-      if (resultat.changes === 0) {
-        return;
-      }
+  if (!commandeEnAttente) {
+    return;
+  }
 
-      db.prepare(`
-        UPDATE products
-        SET stock = stock - 1
-        WHERE id = ?
-        AND stock > 0
-      `).run(commande.product_id);
+  // Récupérer les articles du panier
+  const articles = db.prepare(`
+    SELECT product_id, quantity
+    FROM order_items
+    WHERE order_id = ?
+  `).all(commande.id);
 
-    });
+  // Compatibilité avec les anciennes commandes
+  const produitsADecompter = articles.length > 0
+    ? articles
+    : [{
+        product_id: commandeEnAttente.product_id,
+        quantity: 1
+      }];
 
-    confirmerCommande();
+  // Vérifier la disponibilité de tous les articles
+  let stockDisponible = true;
+
+  for (const article of produitsADecompter) {
+
+    const produit = db.prepare(`
+      SELECT stock
+      FROM products
+      WHERE id = ?
+    `).get(article.product_id);
+
+    if (
+      !produit ||
+      !Number.isSafeInteger(article.quantity) ||
+      article.quantity <= 0 ||
+      produit.stock < article.quantity
+    ) {
+      stockDisponible = false;
+      break;
+    }
+  }
+
+  // Paiement confirmé, mais stock insuffisant
+  if (!stockDisponible) {
+
+    const resultat = db.prepare(`
+      UPDATE orders
+      SET status = 'paid',
+          fulfillment_status = 'stock_issue'
+      WHERE id = ?
+      AND status = 'pending'
+    `).run(commande.id);
+
+    if (resultat.changes !== 1) {
+      throw new Error("Impossible d'enregistrer le paiement");
+    }
+
+    console.warn(
+      "ATTENTION : paiement confirmé, stock insuffisant pour la commande",
+      commande.id
+    );
+
+    return;
+  }
+
+  // Retirer les articles du stock
+  for (const article of produitsADecompter) {
+
+    const resultatStock = db.prepare(`
+      UPDATE products
+      SET stock = stock - ?
+      WHERE id = ?
+      AND stock >= ?
+    `).run(
+      article.quantity,
+      article.product_id,
+      article.quantity
+    );
+
+    if (resultatStock.changes !== 1) {
+      throw new Error("Impossible de mettre à jour le stock");
+    }
+  }
+
+  // Confirmer le paiement
+  const resultat = db.prepare(`
+    UPDATE orders
+    SET status = 'paid',
+        fulfillment_status = 'pending'
+    WHERE id = ?
+    AND status = 'pending'
+  `).run(commande.id);
+
+  if (resultat.changes !== 1) {
+    throw new Error("Impossible de confirmer la commande");
+  }
+
+});
+
+confirmerCommande();
 
     console.log("Paiement confirmé :", token);
 

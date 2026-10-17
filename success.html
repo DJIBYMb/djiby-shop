@@ -1,64 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-<title>Paiement réussi</title>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>Confirmation de commande - DJIBY SHOP</title>
 <style>
-body{
-    margin:0;
-    font-family:Arial;
-    background:white;
-    color:black;
-    text-align:center;
-    padding:30px;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: white;
+  color: #222;
+  text-align: center;
+  padding: 30px 16px;
 }
-
-.box{
-    border:3px solid black;
-    border-radius:25px;
-    padding:30px;
-    max-width:500px;
-    margin:auto;
+.box {
+  border: 2px solid #222;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 500px;
+  margin: auto;
 }
-
-h1{
-    color:green;
+h1 { color: #176b36; }
+.btn {
+  display: block;
+  background: #111;
+  color: white;
+  padding: 15px;
+  border-radius: 12px;
+  text-decoration: none;
+  margin-top: 22px;
 }
-
-.btn{
-    display:block;
-    background:black;
-    color:white;
-    padding:15px;
-    border-radius:12px;
-    text-decoration:none;
-    margin-top:20px;
-}
+#payment-details { line-height: 1.6; }
 </style>
 </head>
-
 <body>
-
 <div class="box">
-
-<h1>✅ Paiement réussi</h1>
-
-<h2>Merci pour votre achat chez DJIBY SHOP</h2>
-
-<p>Votre commande a bien été reçue.</p>
-
-<p>Nous allons vous contacter rapidement pour la livraison.</p>
-
-<p><strong>WhatsApp :</strong> 33745098191</p>
-
-<p><strong>Email :</strong> djibyshop14@gmail.com</p>
-
-<a class="btn" href="index.html">
-Retour à la boutique
-</a>
-
+  <h1 id="payment-status">Vérification du paiement?</h1>
+  <h2>Merci de votre visite chez DJIBY SHOP</h2>
+  <p id="payment-details" aria-live="polite">
+    Nous v?rifions le statut de votre paiement.
+  </p>
+  <p><strong>WhatsApp :</strong> 33745098191</p>
+  <p><strong>Email :</strong> djibyshop14@gmail.com</p>
+  <a class="btn" href="index.html">Retour ? la boutique</a>
 </div>
 
+<script>
+(function () {
+  const title = document.getElementById("payment-status");
+  const details = document.getElementById("payment-details");
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get("session_id");
+
+  if (!sessionId) {
+    title.textContent = "Confirmation du paiement en attente";
+    details.textContent =
+      "Le statut du paiement n'est pas vérifié sur cette page. " +
+      "Si vous avez payé avec PayDunya, sa confirmation doit être " +
+      "vérifiée par le système de paiement.";
+    return;
+  }
+
+  // Adresse réservée aux tests locaux.
+  // Elle ne fonctionnera pas pour les clients sur Internet.
+  const API_URL = "https://djiby-sho.onrender.com";
+
+  async function verifyPayment() {
+    try {
+      const response = await fetch(
+        API_URL + "/stripe-payment-status?session_id=" +
+        encodeURIComponent(sessionId),
+        { cache: "no-store" }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.status === "paid") {
+        title.textContent = "Paiement confirmé";
+        details.textContent =
+          "Votre paiement a ?t? confirmé. Merci pour votre commande.";
+      } else if (
+        response.ok &&
+        ["pending", "processing"].includes(result.status)
+      ) {
+        title.textContent = "Confirmation du paiement en cours";
+        details.textContent =
+          "Votre paiement est en cours de vérification. " +
+          "Veuillez patienter avant de contacter le service client.";
+      } else {
+        title.textContent = "Paiement non vérifié";
+        details.textContent =
+          "Nous ne pouvons pas encore confirmer votre paiement. " +
+          "Si votre compte a ?t? débité, ne payez pas une deuxième fois ; " +
+          "contactez le service client.";
+      }
+    } catch (error) {
+      title.textContent = "Vérification indisponible";
+      details.textContent =
+        "Nous ne pouvons pas v?rifier le paiement pour le moment. " +
+        "Si votre compte a ?t? débité, ne payez pas une deuxième fois ; " +
+        "contactez le service client.";
+    }
+  }
+
+  verifyPayment();
+})();
+</script>
 </body>
 </html>

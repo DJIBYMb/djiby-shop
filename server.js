@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const paydunya = require("paydunya");
+const Stripe = require("stripe");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const Database = require("better-sqlite3");
@@ -12,6 +13,7 @@ const path = require("path");
 dotenv.config();
 
 const app = express();
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 app.disable("x-powered-by");
 
@@ -45,10 +47,109 @@ app.use(cors({
   }
 }));
 
+// Stripe exige le corps brut pour verifier la signature du webhook.
+// Cette route doit etre declaree AVANT express.json().
+app.post("/stripe-webhook", express.raw({ type: "application/json" }), (req, res) => {
+  if (process.env.STRIPE_PAYMENTS_ENABLED !== "true") {
+    return res.status(503).send("Stripe temporairement desactive");
+  }
+  if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
+    return res.status(503).send("Webhook Stripe non configure");
+  }
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      req.get("stripe-signature"),
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (error) {
+    return res.status(400).send("Signature Stripe invalide");
+  }
+
+  if (event.type !== "checkout.session.completed" &&
+      event.type !== "checkout.session.async_payment_succeeded") {
+    return res.json({ received: true });
+  }
+
+  try {
+    const session = event.data.object;
+    if (session.payment_status !== "paid" ||
+        session.mode !== "payment" ||
+        session.currency !== "eur") {
+      return res.json({ received: true });
+    }
+    const orderId = Number(session.metadata?.order_id);
+    if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+      return res.status(400).send("Commande Stripe invalide");
+    }
+    const confirm = db.transaction(() => {
+      const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(orderId);
+      if (order && order.payment_provider !== "stripe") {
+        throw new Error("Fournisseur de paiement Stripe incorrect");
+      }
+      // La notification peut arriver avant l'enregistrement de la session Stripe.
+      // Ne jamais confirmer une commande sans son identifiant de session verifie.
+      // Stripe reessaiera la notification apres une reponse temporaire 503.
+      if (order && order.status === "pending" && order.invoice_token === null) {
+        const retryError = new Error("Session Stripe pas encore enregistree");
+        retryError.code = "STRIPE_SESSION_PENDING";
+        throw retryError;
+      }
+      if (!order || typeof order.invoice_token !== "string" ||
+          order.invoice_token !== session.id ||
+          !order.invoice_token.startsWith("cs_")) {
+        throw new Error("Session Stripe sans commande correspondante");
+      }
+      const articles = db.prepare(
+        "SELECT product_id, quantity, unit_price FROM order_items WHERE order_id = ?"
+      ).all(orderId);
+      if (!articles.length) throw new Error("Commande sans articles");
+      const totalXof = articles.reduce((sum, a) => sum + a.quantity * a.unit_price, 0);
+      const expectedCents = Math.round(totalXof * 100 / 655.957);
+      if (!Number.isSafeInteger(totalXof) ||
+          session.amount_total !== expectedCents ||
+          session.amount_total < 50) {
+        throw new Error("Montant Stripe non conforme");
+      }
+      if (order.status !== "pending") return; // Webhook deja traite
+      const available = articles.every(a => {
+        const p = db.prepare("SELECT stock FROM products WHERE id = ?").get(a.product_id);
+        return p && Number.isSafeInteger(a.quantity) && a.quantity > 0 &&
+          p.stock >= a.quantity;
+      });
+      if (!available) {
+        db.prepare("UPDATE orders SET status = 'paid', fulfillment_status = 'stock_issue' WHERE id = ? AND status = 'pending'").run(orderId);
+        return;
+      }
+      for (const a of articles) {
+        const result = db.prepare(
+          "UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?"
+        ).run(a.quantity, a.product_id, a.quantity);
+        if (result.changes !== 1) throw new Error("Stock non actualise");
+      }
+      const result = db.prepare(
+        "UPDATE orders SET status = 'paid', fulfillment_status = 'pending' WHERE id = ? AND status = 'pending'"
+      ).run(orderId);
+      if (result.changes !== 1) throw new Error("Commande non confirmee");
+    });
+    confirm();
+    return res.json({ received: true });
+  } catch (error) {
+    if (error.code === "STRIPE_SESSION_PENDING") {
+      console.warn("Webhook Stripe recu avant enregistrement de la session : nouvelle tentative attendue");
+      res.set("Retry-After", "5");
+      return res.status(503).send("Session Stripe en cours d'enregistrement");
+    }
+    console.error("Erreur webhook Stripe:", error);
+    return res.status(500).send("Verification Stripe impossible");
+  }
+});
+
 app.use(express.json({ limit: "30kb" }));
 
 // =====================================
-// BASE DE DONNÉES
+// BASE DE DONNÃ‰ES
 // =====================================
 
 const dataDir = process.env.DATA_DIR ||
@@ -99,7 +200,7 @@ db.exec(`
 `);
 
 // =====================================
-// SUIVI DE PRÉPARATION DES COMMANDES
+// SUIVI DE PRÃ‰PARATION DES COMMANDES
 // =====================================
 
 const colonnesOrders = db.prepare(
@@ -119,6 +220,16 @@ if (!fulfillmentExiste) {
   console.log("Colonne fulfillment_status ajoutée");
 }
 
+
+// Identifier le fournisseur de paiement des commandes.
+const paymentProviderExiste = db.prepare(
+  "PRAGMA table_info(orders)"
+).all().some(colonne => colonne.name === "payment_provider");
+
+if (!paymentProviderExiste) {
+  db.exec("ALTER TABLE orders ADD COLUMN payment_provider TEXT");
+  console.log("Colonne payment_provider ajoutee");
+}
 
 const clean = product => ({
   ...product,
@@ -171,29 +282,29 @@ const produitsInitiaux = [
     images: ["ro.jpeg", "rb.jpeg", "re.jpeg"],
     description: "Robe de mariée élégante avec imprimé floral, design à une épaule et coupe longue"
   },
-  {"id": 5, "name": "Produit 5", "price": 7000, "stock": 6, "images": ["p5-1.jpeg", "p5-2.jpeg", "p5-3.jpeg"], "description": "• Bonne finition<br>• Produit populaire"},
-  {"id": 6, "name": "Produit 6", "price": 7500, "stock": 9, "images": ["p6-1.jpeg", "p6-2.jpeg", "p6-3.jpeg"], "description": "• Très bonne qualité<br>• Livraison disponible"},
-  {"id": 7, "name": "Produit 7", "price": 8000, "stock": 7, "images": ["p7-1.jpeg", "p7-2.jpeg", "p7-3.jpeg"], "description": "• Design moderne<br>• Disponible"},
-  {"id": 8, "name": "Produit 8", "price": 8500, "stock": 11, "images": ["p8-1.jpeg", "p8-2.jpeg", "p8-3.jpeg"], "description": "• Produit vérifié<br>• Qualité premium"},
-  {"id": 9, "name": "Produit 9", "price": 9000, "stock": 5, "images": ["p9-1.jpeg", "p9-2.jpeg", "p9-3.jpeg"], "description": "• Livraison Sénégal<br>• Bon état"},
-  {"id": 10, "name": "Produit 10", "price": 9500, "stock": 15, "images": ["p10-1.jpeg", "p10-2.jpeg", "p10-3.jpeg"], "description": "• Produit populaire<br>• Disponible"},
-  {"id": 11, "name": "Produit 11", "price": 10000, "stock": 4, "images": ["p11-1.jpeg", "p11-2.jpeg", "p11-3.jpeg"], "description": "• Bonne qualité<br>• Livraison rapide"},
-  {"id": 12, "name": "Produit 12", "price": 10500, "stock": 6, "images": ["p12-1.jpeg", "p12-2.jpeg", "p12-3.jpeg"], "description": "• Produit original<br>• Disponible"},
-  {"id": 13, "name": "Produit 13", "price": 11000, "stock": 8, "images": ["p13-1.jpeg", "p13-2.jpeg", "p13-3.jpeg"], "description": "• Très demandé<br>• Haute qualité"},
-  {"id": 14, "name": "Produit 14", "price": 11500, "stock": 10, "images": ["p14-1.jpeg", "p14-2.jpeg", "p14-3.jpeg"], "description": "• Design élégant<br>• Livraison possible"},
-  {"id": 15, "name": "Produit 15", "price": 12000, "stock": 5, "images": ["p15-1.jpeg", "p15-2.jpeg", "p15-3.jpeg"], "description": "• Produit neuf<br>• Disponible maintenant"},
-  {"id": 16, "name": "Produit 16", "price": 12500, "stock": 6, "images": ["p16-1.jpeg", "p16-2.jpeg", "p16-3.jpeg"], "description": "• Bonne finition<br>• Produit vérifié"},
-  {"id": 17, "name": "Produit 17", "price": 13000, "stock": 7, "images": ["p17-1.jpeg", "p17-2.jpeg", "p17-3.jpeg"], "description": "• Qualité premium<br>• Disponible"},
-  {"id": 18, "name": "Produit 18", "price": 13500, "stock": 8, "images": ["p18-1.jpeg", "p18-2.jpeg", "p18-3.jpeg"], "description": "• Livraison rapide<br>• Bon produit"},
-  {"id": 19, "name": "Produit 19", "price": 14000, "stock": 9, "images": ["p19-1.jpeg", "p19-2.jpeg", "p19-3.jpeg"], "description": "• Très bonne qualité<br>• Disponible"},
-  {"id": 20, "name": "Produit 20", "price": 14500, "stock": 10, "images": ["p20-1.jpeg", "p20-2.jpeg", "p20-3.jpeg"], "description": "• Produit tendance<br>• Livraison Sénégal"},
-  {"id": 21, "name": "Produit 21", "price": 15000, "stock": 5, "images": ["p21-1.jpeg", "p21-2.jpeg", "p21-3.jpeg"], "description": "• Produit premium<br>• Disponible"},
-  {"id": 22, "name": "Produit 22", "price": 15500, "stock": 6, "images": ["p22-1.jpeg", "p22-2.jpeg", "p22-3.jpeg"], "description": "• Design moderne<br>• Haute qualité"},
-  {"id": 23, "name": "Produit 23", "price": 16000, "stock": 7, "images": ["p23-1.jpeg", "p23-2.jpeg", "p23-3.jpeg"], "description": "• Produit neuf<br>• Disponible"},
-  {"id": 24, "name": "Produit 24", "price": 16500, "stock": 8, "images": ["p24-1.jpeg", "p24-2.jpeg", "p24-3.jpeg"], "description": "• Livraison rapide<br>• Produit vérifié"},
-  {"id": 25, "name": "Produit 25", "price": 17000, "stock": 9, "images": ["p25-1.jpeg", "p25-2.jpeg", "p25-3.jpeg"], "description": "• Très populaire<br>• Disponible"},
-  {"id": 26, "name": "Produit 26", "price": 17500, "stock": 10, "images": ["p26-1.jpeg", "p26-2.jpeg", "p26-3.jpeg"], "description": "• Bonne qualité<br>• Livraison Sénégal"},
-  {"id": 27, "name": "Produit 27", "price": 18000, "stock": 5, "images": ["p27-1.jpeg", "p27-2.jpeg", "p27-3.jpeg"], "description": "• Produit premium<br>• Disponible maintenant"}
+  {"id": 5, "name": "Produit 5", "price": 7000, "stock": 6, "images": ["p5-1.jpeg", "p5-2.jpeg", "p5-3.jpeg"], "description": "â€¢ Bonne finition<br>â€¢ Produit populaire"},
+  {"id": 6, "name": "Produit 6", "price": 7500, "stock": 9, "images": ["p6-1.jpeg", "p6-2.jpeg", "p6-3.jpeg"], "description": "â€¢ Très bonne qualité<br>â€¢ Livraison disponible"},
+  {"id": 7, "name": "Produit 7", "price": 8000, "stock": 7, "images": ["p7-1.jpeg", "p7-2.jpeg", "p7-3.jpeg"], "description": "â€¢ Design moderne<br>â€¢ Disponible"},
+  {"id": 8, "name": "Produit 8", "price": 8500, "stock": 11, "images": ["p8-1.jpeg", "p8-2.jpeg", "p8-3.jpeg"], "description": "â€¢ Produit vérifié<br>â€¢ Qualité premium"},
+  {"id": 9, "name": "Produit 9", "price": 9000, "stock": 5, "images": ["p9-1.jpeg", "p9-2.jpeg", "p9-3.jpeg"], "description": "â€¢ Livraison Sénégal<br>â€¢ Bon état"},
+  {"id": 10, "name": "Produit 10", "price": 9500, "stock": 15, "images": ["p10-1.jpeg", "p10-2.jpeg", "p10-3.jpeg"], "description": "â€¢ Produit populaire<br>â€¢ Disponible"},
+  {"id": 11, "name": "Produit 11", "price": 10000, "stock": 4, "images": ["p11-1.jpeg", "p11-2.jpeg", "p11-3.jpeg"], "description": "â€¢ Bonne qualité<br>â€¢ Livraison rapide"},
+  {"id": 12, "name": "Produit 12", "price": 10500, "stock": 6, "images": ["p12-1.jpeg", "p12-2.jpeg", "p12-3.jpeg"], "description": "â€¢ Produit original<br>â€¢ Disponible"},
+  {"id": 13, "name": "Produit 13", "price": 11000, "stock": 8, "images": ["p13-1.jpeg", "p13-2.jpeg", "p13-3.jpeg"], "description": "â€¢ Très demandé<br>â€¢ Haute qualité"},
+  {"id": 14, "name": "Produit 14", "price": 11500, "stock": 10, "images": ["p14-1.jpeg", "p14-2.jpeg", "p14-3.jpeg"], "description": "â€¢ Design élégant<br>â€¢ Livraison possible"},
+  {"id": 15, "name": "Produit 15", "price": 12000, "stock": 5, "images": ["p15-1.jpeg", "p15-2.jpeg", "p15-3.jpeg"], "description": "â€¢ Produit neuf<br>â€¢ Disponible maintenant"},
+  {"id": 16, "name": "Produit 16", "price": 12500, "stock": 6, "images": ["p16-1.jpeg", "p16-2.jpeg", "p16-3.jpeg"], "description": "â€¢ Bonne finition<br>â€¢ Produit vérifié"},
+  {"id": 17, "name": "Produit 17", "price": 13000, "stock": 7, "images": ["p17-1.jpeg", "p17-2.jpeg", "p17-3.jpeg"], "description": "â€¢ Qualité premium<br>â€¢ Disponible"},
+  {"id": 18, "name": "Produit 18", "price": 13500, "stock": 8, "images": ["p18-1.jpeg", "p18-2.jpeg", "p18-3.jpeg"], "description": "â€¢ Livraison rapide<br>â€¢ Bon produit"},
+  {"id": 19, "name": "Produit 19", "price": 14000, "stock": 9, "images": ["p19-1.jpeg", "p19-2.jpeg", "p19-3.jpeg"], "description": "â€¢ Très bonne qualité<br>â€¢ Disponible"},
+  {"id": 20, "name": "Produit 20", "price": 14500, "stock": 10, "images": ["p20-1.jpeg", "p20-2.jpeg", "p20-3.jpeg"], "description": "â€¢ Produit tendance<br>â€¢ Livraison Sénégal"},
+  {"id": 21, "name": "Produit 21", "price": 15000, "stock": 5, "images": ["p21-1.jpeg", "p21-2.jpeg", "p21-3.jpeg"], "description": "â€¢ Produit premium<br>â€¢ Disponible"},
+  {"id": 22, "name": "Produit 22", "price": 15500, "stock": 6, "images": ["p22-1.jpeg", "p22-2.jpeg", "p22-3.jpeg"], "description": "â€¢ Design moderne<br>â€¢ Haute qualité"},
+  {"id": 23, "name": "Produit 23", "price": 16000, "stock": 7, "images": ["p23-1.jpeg", "p23-2.jpeg", "p23-3.jpeg"], "description": "â€¢ Produit neuf<br>â€¢ Disponible"},
+  {"id": 24, "name": "Produit 24", "price": 16500, "stock": 8, "images": ["p24-1.jpeg", "p24-2.jpeg", "p24-3.jpeg"], "description": "â€¢ Livraison rapide<br>â€¢ Produit vérifié"},
+  {"id": 25, "name": "Produit 25", "price": 17000, "stock": 9, "images": ["p25-1.jpeg", "p25-2.jpeg", "p25-3.jpeg"], "description": "â€¢ Très populaire<br>â€¢ Disponible"},
+  {"id": 26, "name": "Produit 26", "price": 17500, "stock": 10, "images": ["p26-1.jpeg", "p26-2.jpeg", "p26-3.jpeg"], "description": "â€¢ Bonne qualité<br>â€¢ Livraison Sénégal"},
+  {"id": 27, "name": "Produit 27", "price": 18000, "stock": 5, "images": ["p27-1.jpeg", "p27-2.jpeg", "p27-3.jpeg"], "description": "â€¢ Produit premium<br>â€¢ Disponible maintenant"}
 ];
 
 // Importer les produits sans écraser ceux qui existent déjà
@@ -242,13 +353,13 @@ app.use(
 // =====================================
 
 app.get("/", (req, res) => {
-  res.send("Backend DJIBY SHOP fonctionne 🔥");
+  res.send("Backend DJIBY SHOP fonctionne ðŸ”¥");
 });
 
 app.get("/test", (req, res) => {
   res.json({
     success: true,
-    message: "HTML connecté au backend 🔥"
+    message: "HTML connecté au backend ðŸ”¥"
   });
 });
 
@@ -501,7 +612,7 @@ function validated(body) {
 }
 
 // =====================================
-// CRÉER UN PRODUIT
+// CRÃ‰ER UN PRODUIT
 // =====================================
 
 app.post("/admin/products", admin, (req, res) => {
@@ -537,7 +648,6 @@ app.put("/admin/products/:id", admin, (req, res) => {
       message: "Produit introuvable"
     });
   }
-
   const product = validated(req.body);
 
   if (!product) {
@@ -599,7 +709,7 @@ const store = new paydunya.Store({
 });
 
 // =====================================
-// CRÉER UN PAIEMENT
+// CRÃ‰ER UN PAIEMENT
 // =====================================
 
 app.post("/create-payment", async (req, res) => {
@@ -680,15 +790,7 @@ app.post("/create-payment", async (req, res) => {
 }
 
     db.prepare(`
-      INSERT INTO orders
-      (
-        product_id,
-        customer,
-        invoice_token,
-        status,
-        created_at
-      )
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO orders (product_id, customer, invoice_token, status, created_at, payment_provider) VALUES (?, ?, ?, ?, ?, 'paydunya')
     `).run(
       product.id,
       JSON.stringify(customer),
@@ -845,9 +947,7 @@ app.post("/create-cart-payment", async (req, res) => {
     // Enregistrer la commande et ses articles ensemble
     const enregistrerCommande = db.transaction(() => {
       const result = db.prepare(`
-        INSERT INTO orders
-        (product_id, customer, invoice_token, status, created_at)
-        VALUES (?, ?, ?, 'pending', ?)
+        INSERT INTO orders (product_id, customer, invoice_token, status, created_at, payment_provider) VALUES (?, ?, ?, 'pending', ?, 'paydunya')
       `).run(
         produits[0].id,
         JSON.stringify(customer),
@@ -890,6 +990,157 @@ app.post("/create-cart-payment", async (req, res) => {
 });
 
 // =====================================
+// PAIEMENT STRIPE (PANIER EN FCFA, REGLEMENT EN EUR)
+// =====================================
+app.get("/stripe-payment-status", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+
+  if (!stripe) {
+    return res.status(503).json({ status: "unavailable" });
+  }
+
+  const sessionId = req.query.session_id;
+
+  if (
+    typeof sessionId !== "string" ||
+    !/^cs_(test_|live_)[A-Za-z0-9]+$/.test(sessionId)
+  ) {
+    return res.status(400).json({ status: "invalid" });
+  }
+
+  try {
+    const order = db.prepare(
+      "SELECT id, status, invoice_token FROM orders WHERE invoice_token = ?"
+    ).get(sessionId);
+
+    if (!order) {
+      return res.status(404).json({ status: "not_found" });
+    }
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (
+      session.id !== order.invoice_token ||
+      session.mode !== "payment" ||
+      session.metadata?.order_id !== String(order.id) ||
+      session.currency !== "eur"
+    ) {
+      return res.status(409).json({ status: "unverified" });
+    }
+
+    if (session.payment_status !== "paid") {
+      return res.json({ status: "pending" });
+    }
+
+    if (order.status !== "paid") {
+      return res.json({ status: "processing" });
+    }
+
+    return res.json({ status: "paid" });
+
+  } catch (error) {
+    console.error("Erreur verification Stripe:", error.message);
+    return res.status(503).json({ status: "unavailable" });
+  }
+});
+
+app.post("/create-stripe-payment", async (req, res) => {
+  if (process.env.STRIPE_PAYMENTS_ENABLED !== "true") {
+    return res.status(503).json({
+      success: false,
+      message: "Paiement Stripe temporairement indisponible"
+    });
+  }
+  if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
+    return res.status(503).json({ success: false, message: "Stripe non configure" });
+  }
+  const items = req.body?.items;
+  const customer = req.body?.customer;
+  const fields = ["firstName", "lastName", "email", "phone", "address"];
+  if (!customer || !fields.every(key =>
+    typeof customer[key] === "string" &&
+    customer[key].trim().length > 0 && customer[key].length < 250
+  ) || !Array.isArray(items) || items.length < 1 || items.length > 30) {
+    return res.status(400).json({ success: false, message: "Panier ou client invalide" });
+  }
+
+  const products = [];
+  const ids = new Set();
+  let totalXof = 0;
+  for (const item of items) {
+    const id = Number(item?.id);
+    const quantity = Number(item?.quantity);
+    if (!Number.isSafeInteger(id) || id <= 0 ||
+        !Number.isSafeInteger(quantity) || quantity < 1 || quantity > 100 ||
+        ids.has(id)) {
+      return res.status(400).json({ success: false, message: "Article invalide" });
+    }
+    ids.add(id);
+    const product = getProduct(id);
+    if (!product || product.stock < quantity) {
+      return res.status(400).json({ success: false, message: "Stock insuffisant" });
+    }
+    const subtotal = product.price * quantity;
+    if (!Number.isSafeInteger(subtotal) ||
+        !Number.isSafeInteger(totalXof + subtotal)) {
+      return res.status(400).json({ success: false, message: "Montant invalide" });
+    }
+    totalXof += subtotal;
+    products.push({ ...product, quantity });
+  }
+
+  // 1 EUR = 655,957 XOF. Stripe attend des centimes entiers.
+  const cents = Math.round(totalXof * 100 / 655.957);
+  if (!Number.isSafeInteger(cents) || cents < 50 || cents > 99999999) {
+    return res.status(400).json({ success: false, message: "Montant non pris en charge" });
+  }
+
+  let orderId;
+  try {
+    // On enregistre d'abord la commande en attente, sans modifier le stock.
+    const insert = db.transaction(() => {
+      const order = db.prepare(`
+        INSERT INTO orders (product_id, customer, invoice_token, status, created_at, payment_provider) VALUES (?, ?, NULL, 'pending', ?, 'stripe')
+      `).run(products[0].id, JSON.stringify(customer), Date.now());
+      const add = db.prepare(`
+        INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+        VALUES (?, ?, ?, ?)
+      `);
+      for (const product of products) {
+        add.run(order.lastInsertRowid, product.id, product.quantity, product.price);
+      }
+      return Number(order.lastInsertRowid);
+    });
+    orderId = insert();
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+
+      customer_email: customer.email.trim(),
+      client_reference_id: String(orderId),
+      metadata: { order_id: String(orderId) },
+      line_items: [{
+        price_data: {
+          currency: "eur",
+          unit_amount: cents,
+          product_data: { name: `Commande SunuShop #${orderId} (${totalXof} FCFA)` }
+        },
+        quantity: 1
+      }],
+      success_url: "https://djibymb.github.io/djiby-shop/success.html?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: "https://djibymb.github.io/djiby-shop/"
+    }, { idempotencyKey: `sunushop-order-${orderId}` });
+
+    db.prepare("UPDATE orders SET invoice_token = ? WHERE id = ? AND status = 'pending'")
+      .run(session.id, orderId);
+    return res.json({ success: true, payment_url: session.url, status: "en attente" });
+  } catch (error) {
+    console.error("Erreur creation Stripe:", error);
+    return res.status(500).json({ success: false, message: "Paiement Stripe indisponible" });
+  }
+});
+
+// =====================================
 // CONFIRMATION DES PAIEMENTS PAYDUNYA
 // =====================================
 
@@ -913,6 +1164,9 @@ app.post("/ipn", async function(req, res) {
     if (!commande) {
       return res.status(404).send("Commande introuvable");
     }
+    if (commande.payment_provider && commande.payment_provider !== "paydunya") {
+      return res.status(409).send("Fournisseur de paiement incorrect");
+    }
 
     // Vérification du paiement directement
     // auprès de PayDunya
@@ -928,7 +1182,7 @@ app.post("/ipn", async function(req, res) {
       return res.send("Paiement non confirmé");
     }
 
-    // Éviter de traiter deux fois la même commande
+    // Ã‰viter de traiter deux fois la même commande
 
 const confirmerCommande = db.transaction(() => {
 
@@ -1068,7 +1322,7 @@ app.use((error, req, res, next) => {
 });
 
 // =====================================
-// DÉMARRAGE DU SERVEUR
+// DÃ‰MARRAGE DU SERVEUR
 // =====================================
 
 const PORT = process.env.PORT || 8000;

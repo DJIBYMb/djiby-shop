@@ -174,6 +174,17 @@ border-radius:15px;
     <p id="selectedText"></p>
 
     <form id="orderForm">
+      <div style="margin:15px 0;text-align:left;">
+        <p><strong>Choisissez votre moyen de paiement :</strong></p>
+        <label style="display:block;margin:10px 0;">
+          <input type="radio" name="paymentMethod" value="paydunya" checked>
+          PayDunya
+        </label>
+        <label hidden style="display:none;margin:10px 0;">
+          <input type="radio" name="paymentMethod" value="stripe">
+          Carte bancaire (Stripe)
+        </label>
+      </div>
       <input id="firstName" placeholder="Prénom" required>
       <input id="lastName" placeholder="Nom de famille" required>
       <input id="email" type="email" placeholder="Email" required>
@@ -596,22 +607,41 @@ document.getElementById("orderForm").addEventListener("submit", function(e){
   };
 
   // Choisir le paiement individuel ou le paiement du panier
-const paymentEndpoint = checkoutMode === "cart"
-  ? "/create-cart-payment"
-  : "/create-payment";
+const paymentMethod = document.querySelector(
+  'input[name="paymentMethod"]:checked'
+)?.value;
 
-const paymentData = checkoutMode === "cart"
+const paymentEndpoint = paymentMethod === "stripe"
+  ? "/create-stripe-payment"
+  : checkoutMode === "cart"
+    ? "/create-cart-payment"
+    : "/create-payment";
+
+const paymentData = paymentMethod === "stripe"
   ? {
       customer: customer,
-      items: cart.map(item => ({
-        id: item.id,
-        quantity: item.quantity
-      }))
+      items: checkoutMode === "cart"
+        ? cart.map(item => ({
+            id: item.id,
+            quantity: item.quantity
+          }))
+        : [{
+            id: selectedProduct.id,
+            quantity: 1
+          }]
     }
-  : {
-      product: selectedProduct,
-      customer: customer
-    };
+  : checkoutMode === "cart"
+    ? {
+        customer: customer,
+        items: cart.map(item => ({
+          id: item.id,
+          quantity: item.quantity
+        }))
+      }
+    : {
+        product: selectedProduct,
+        customer: customer
+      };
 
   fetch(API_URL + paymentEndpoint, {
     method: "POST",
@@ -619,7 +649,7 @@ const paymentData = checkoutMode === "cart"
       "Content-Type": "application/json"
     },
     body: JSON.stringify(paymentData)
-    
+
   })
   .then(res => res.json())
   .then(data => {

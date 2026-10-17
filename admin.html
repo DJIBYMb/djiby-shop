@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — DJIBY SHOP</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6fa;color:#182334}
+header{background:#14213d;color:white;padding:20px;text-align:center}
+header h1{margin:0;font-size:25px}
+header p{margin:8px 0 0;color:#d8e2f2}
+main{max-width:1100px;margin:25px auto;padding:0 15px}
+.card{background:white;padding:22px;border-radius:12px;box-shadow:0 3px 15px #00000010;margin-bottom:20px}
+h2{margin-top:0}
+input,textarea,button{font:inherit}
+input,textarea{width:100%;padding:12px;margin:7px 0 14px;border:1px solid #ccd3df;border-radius:7px}
+textarea{min-height:90px;resize:vertical}
+button{padding:11px 17px;border:0;border-radius:7px;background:#1769aa;color:white;cursor:pointer}
+button:hover{opacity:.9}
+button:disabled{opacity:.55;cursor:wait}
+.danger{background:#c62828}
+.secondary{background:#526176}
+.hidden{display:none!important}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row>*{flex:1;min-width:160px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.product{border:1px solid #e1e5eb;padding:15px;border-radius:9px;margin:12px 0}
+.product img{width:80px;height:80px;object-fit:cover;border-radius:6px;margin-right:6px}
+.message{padding:12px;border-radius:7px;margin:12px 0;white-space:pre-wrap}
+.ok{background:#e0f4e6;color:#14562c}
+.error{background:#ffe6e6;color:#922}
+label{font-weight:bold;display:block}
+small{color:#566174}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🛍️ DJIBY SHOP</h1>
+<p>Espace administrateur</p>
+</header>
+
+<main>
+
+<section id="loginSection" class="card">
+<h2>🔐 Connexion administrateur</h2>
+<form id="loginForm">
+<label for="password">Mot de passe</label>
+<input id="password" type="password" autocomplete="current-password" required>
+<button type="submit">Se connecter</button>
+</form>
+</section>
+
+<section id="adminSection" class="hidden">
+
+<div class="card">
+<div class="actions">
+<button id="refreshBtn" type="button">🔄 Actualiser les produits</button>
+<button id="logoutBtn" class="secondary" type="button">🚪 Déconnexion</button>
+</div>
+</div>
+
+<section class="card">
+<h2 id="formTitle">➕ Ajouter un produit</h2>
+
+<form id="productForm">
+
+<label for="name">Nom du produit</label>
+<input id="name" maxlength="150" required>
+
+<div class="row">
+<div>
+<label for="price">Prix</label>
+<input id="price" type="number" min="1" step="1" required>
+</div>
+<div>
+<label for="stock">Stock</label>
+<input id="stock" type="number" min="0" step="1" required>
+</div>
+</div>
+
+<label for="description">Description</label>
+<textarea id="description" maxlength="3000"></textarea>
+
+<label for="photos">Ajouter des photos</label>
+<input id="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+<small>JPEG, PNG ou WebP — 5 Mo maximum par photo. Jusqu'à 5 photos par envoi.</small>
+
+<label for="imageUrls" style="margin-top:15px">Adresses des images</label>
+<textarea id="imageUrls" placeholder="Une adresse par ligne : https://... ou /uploads/..."></textarea>
+<small>Les photos déjà enregistrées sont conservées si tu ne modifies pas ce champ.</small>
+
+<div class="actions" style="margin-top:15px">
+<button id="saveBtn" type="submit">💾 Enregistrer le produit</button>
+<button id="cancelBtn" class="secondary hidden" type="button">Annuler la modification</button>
+</div>
+
+</form>
+</section>
+
+<section class="card">
+<h2>📦 Produits enregistrés</h2>
+<p id="count"></p>
+<div id="products"></div>
+</section>
+
+</section>
+
+<div id="message" role="status" aria-live="polite"></div>
+
+</main>
+
+<script>
+"use strict";
+
+const API_URL = "https://djiby-sho.onrender.com";
+
+let token = "";
+let products = [];
+let editingId = null;
+let busy = false;
+
+const $ = id => document.getElementById(id);
+
+function showMessage(text, isError = false) {
+  const box = $("message");
+  box.textContent = text;
+  box.className = "message " + (isError ? "error" : "ok");
+}
+
+function clearMessage() {
+  $("message").textContent = "";
+  $("message").className = "";
+}
+
+function setLoggedIn(loggedIn) {
+  $("loginSection").classList.toggle("hidden", loggedIn);
+  $("adminSection").classList.toggle("hidden", !loggedIn);
+}
+
+async function request(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+
+  if (token) {
+    headers.set("Authorization", "Bearer " + token);
+  }
+
+  const response = await fetch(API_URL + path, {
+    ...options,
+    headers
+  });
+
+  const contentType = response.headers.get("content-type") || "";
+
+  const data = contentType.includes("application/json")
+    ? await response.json()
+    : { message: await response.text() };
+
+  if (!response.ok) {
+    if (response.status === 401 && path !== "/admin/login") {
+      token = "";
+      setLoggedIn(false);
+    }
+
+    throw new Error(data.message || "Erreur du serveur");
+  }
+
+  return data;
+}
+
+$("loginForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  clearMessage();
+
+  const button = event.submitter;
+  button.disabled = true;
+
+  try {
+    const data = await request("/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        password: $("password").value
+      })
+    });
+
+    if (!/^[a-f0-9]{64}$/.test(data.token || "")) {
+      throw new Error("Jeton de connexion invalide");
+    }
+
+    token = data.token;
+    $("password").value = "";
+
+    setLoggedIn(true);
+    await loadProducts();
+
+    showMessage("Connexion réussie.");
+  } catch (error) {
+    showMessage(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+async function loadProducts() {
+  const data = await request("/products");
+
+  products = Array.isArray(data)
+    ? data
+    : Array.isArray(data.products)
+      ? data.products
+      : [];
+
+  $("count").textContent = products.length + " produit(s)";
+  renderProducts();
+}
+
+function renderProducts() {
+  const container = $("products");
+  container.replaceChildren();
+
+  for (const product of products) {
+    const box = document.createElement("div");
+    box.className = "product";
+
+    const title = document.createElement("h3");
+    title.textContent = product.name;
+    box.appendChild(title);
+
+    const info = document.createElement("p");
+    info.textContent =
+      "ID : " + product.id +
+      " | Prix : " + product.price +
+      " | Stock : " + product.stock;
+    box.appendChild(info);
+
+    let images = product.images || [];
+
+    if (typeof images === "string") {
+      try {
+        images = JSON.parse(images);
+      } catch {
+        images = [];
+      }
+    }
+
+    if (Array.isArray(images)) {
+      for (const src of images.slice(0, 12)) {
+        if (typeof src !== "string") continue;
+
+        const img = document.createElement("img");
+        img.src = src.startsWith("/uploads/")
+          ? API_URL + src
+          : src;
+        img.alt = product.name;
+        img.loading = "lazy";
+        box.appendChild(img);
+      }
+    }
+
+    const description = document.createElement("p");
+    description.textContent = product.description || "";
+    box.appendChild(description);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.textContent = "✏️ Modifier";
+    edit.addEventListener("click", () => editProduct(product));
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "danger";
+    remove.textContent = "🗑️ Supprimer";
+    remove.addEventListener("click", () => deleteProduct(product));
+
+    actions.append(edit, remove);
+    box.appendChild(actions);
+
+    container.appendChild(box);
+  }
+}
+
+function editProduct(product) {
+  editingId = product.id;
+
+  $("formTitle").textContent = "✏️ Modifier : " + product.name;
+  $("name").value = product.name || "";
+  $("price").value = product.price;
+  $("stock").value = product.stock;
+  $("description").value = product.description || "";
+
+  let images = product.images || [];
+
+  if (typeof images === "string") {
+    try {
+      images = JSON.parse(images);
+    } catch {
+      images = [];
+    }
+  }
+
+  $("imageUrls").value = Array.isArray(images)
+    ? images.join("\n")
+    : "";
+
+  $("photos").value = "";
+  $("cancelBtn").classList.remove("hidden");
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  $("name").focus();
+}
+
+function resetForm() {
+  editingId = null;
+  $("productForm").reset();
+  $("imageUrls").value = "";
+  $("formTitle").textContent = "➕ Ajouter un produit";
+  $("cancelBtn").classList.add("hidden");
+}
+
+$("cancelBtn").addEventListener("click", resetForm);
+
+$("productForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (busy) return;
+
+  busy = true;
+  $("saveBtn").disabled = true;
+  clearMessage();
+
+  try {
+    let images = $("imageUrls").value
+      .split("\n")
+      .map(value => value.trim())
+      .filter(Boolean);
+
+    const files = Array.from($("photos").files);
+
+    if (files.length > 5) {
+      throw new Error("Maximum 5 photos par envoi.");
+    }
+
+    if (files.some(file =>
+      file.size > 5 * 1024 * 1024 ||
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type)
+    )) {
+      throw new Error("Photos invalides : JPEG, PNG ou WebP, 5 Mo maximum.");
+    }
+
+    if (images.length + files.length > 12) {
+      throw new Error("Maximum 12 images par produit.");
+    }
+
+    if (files.length) {
+      const formData = new FormData();
+
+      for (const file of files) {
+        formData.append("photos", file);
+      }
+
+      const uploaded = await request("/admin/upload", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!Array.isArray(uploaded.images)) {
+        throw new Error("Réponse de téléchargement invalide.");
+      }
+
+      images.push(...uploaded.images);
+    }
+
+    const payload = {
+      name: $("name").value.trim(),
+      price: Number($("price").value),
+      stock: Number($("stock").value),
+      description: $("description").value,
+      images
+    };
+
+    if (
+      !payload.name ||
+      !Number.isSafeInteger(payload.price) ||
+      payload.price <= 0 ||
+      !Number.isSafeInteger(payload.stock) ||
+      payload.stock < 0
+    ) {
+      throw new Error("Vérifie le nom, le prix et le stock.");
+    }
+
+    const isEditing = editingId !== null;
+
+    if (isEditing && !confirm(
+      "Confirmer la modification de ce produit ?"
+    )) {
+      return;
+    }
+
+    await request(
+      isEditing
+        ? "/admin/products/" + encodeURIComponent(editingId)
+        : "/admin/products",
+      {
+        method: isEditing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    resetForm();
+    await loadProducts();
+
+    showMessage(
+      isEditing
+        ? "Produit modifié avec succès."
+        : "Produit ajouté avec succès."
+    );
+
+  } catch (error) {
+    showMessage(error.message, true);
+  } finally {
+    busy = false;
+    $("saveBtn").disabled = false;
+  }
+});
+
+async function deleteProduct(product) {
+  if (busy) return;
+
+  const confirmed = confirm(
+    "ATTENTION : supprimer définitivement le produit « " +
+    product.name +
+    " » (ID " + product.id + ") ?"
+  );
+
+  if (!confirmed) return;
+
+  busy = true;
+  clearMessage();
+
+  try {
+    await request(
+      "/admin/products/" + encodeURIComponent(product.id),
+      { method: "DELETE" }
+    );
+
+    if (editingId === product.id) {
+      resetForm();
+    }
+
+    await loadProducts();
+    showMessage("Produit supprimé.");
+
+  } catch (error) {
+    showMessage(error.message, true);
+  } finally {
+    busy = false;
+  }
+}
+
+$("refreshBtn").addEventListener("click", async () => {
+  clearMessage();
+
+  try {
+    await loadProducts();
+    showMessage("Liste actualisée.");
+  } catch (error) {
+    showMessage(error.message, true);
+  }
+});
+
+$("logoutBtn").addEventListener("click", async () => {
+  try {
+    await request("/admin/logout", {
+      method: "POST"
+    });
+  } catch (error) {
+    console.warn("Déconnexion serveur :", error);
+  } finally {
+    token = "";
+    products = [];
+    resetForm();
+    setLoggedIn(false);
+    $("products").replaceChildren();
+    showMessage("Déconnecté.");
+  }
+});
+
+setLoggedIn(false);
+</script>
+
+</body>
+</html>

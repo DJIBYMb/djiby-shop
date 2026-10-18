@@ -239,13 +239,18 @@ const clean = product => ({
 
 
 function getProduct(id) {
+
+  // Produit temporaire Stripe : interdit aux nouvelles commandes
+  if (Number(id) === 28) {
+    return null;
+  }
+
   const product = db.prepare(
     "SELECT * FROM products WHERE id = ?"
   ).get(id);
 
   return product ? clean(product) : null;
 }
-
 // =====================================
 // IMPORTATION DES PRODUITS EXISTANTS
 // =====================================

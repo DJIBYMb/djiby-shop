@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const paydunya = require("paydunya");
@@ -484,6 +484,71 @@ function admin(req, res, next) {
   next();
 }
 
+// =====================================
+// COMMANDES CLIENTS - ADMINISTRATION
+// =====================================
+app.get("/admin/orders", admin, (req, res) => {
+  try {
+    const commandes = db.prepare(`
+      SELECT
+        id,
+        customer,
+        status,
+        payment_provider,
+        fulfillment_status,
+        created_at
+      FROM orders
+      ORDER BY created_at DESC, id DESC
+      LIMIT 100
+    `).all();
+
+    const articlesStmt = db.prepare(`
+      SELECT
+        oi.product_id,
+        oi.quantity,
+        oi.unit_price,
+        p.name AS product_name
+      FROM order_items oi
+      LEFT JOIN products p ON p.id = oi.product_id
+      WHERE oi.order_id = ?
+    `);
+
+    const resultat = commandes.map(commande => {
+      const articles = articlesStmt.all(commande.id);
+
+      let client = {};
+      try {
+        client = JSON.parse(commande.customer);
+      } catch {
+        client = {};
+      }
+
+      return {
+        id: commande.id,
+        customer: client,
+        status: commande.status,
+        payment_provider: commande.payment_provider,
+        fulfillment_status: commande.fulfillment_status,
+        created_at: commande.created_at,
+        items: articles,
+        total_xof: articles.reduce(
+          (total, article) =>
+            total + article.quantity * article.unit_price,
+          0
+        )
+      };
+    });
+
+    res.json({ success: true, orders: resultat });
+
+  } catch (error) {
+    console.error("Erreur commandes admin:", error);
+    res.status(500).json({
+      success: false,
+      message: "Impossible de charger les commandes"
+    });
+  }
+});
 app.get("/admin/check", admin, (req, res) => {
   res.json({ success: true });
 });

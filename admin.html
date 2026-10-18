@@ -105,6 +105,20 @@ small{color:#566174}
 <div id="products"></div>
 </section>
 
+<section class="card" id="ordersSection">
+  <h2>📦 Commandes clients</h2>
+
+  <p>Consultez les commandes Stripe et PayDunya.</p>
+
+  <button id="refreshOrdersBtn" type="button">
+    🔄 Actualiser les commandes
+  </button>
+
+  <div id="ordersList" style="margin-top:20px;">
+    Cliquez sur Actualiser les commandes.
+  </div>
+</section>
+
 </section>
 
 <div id="message" role="status" aria-live="polite"></div>
@@ -463,6 +477,93 @@ async function deleteProduct(product) {
   }
 }
 
+async function loadOrders() {
+  const liste = $("ordersList");
+  liste.textContent = "Chargement des commandes...";
+
+  try {
+    const data = await request("/admin/orders");
+    const orders = Array.isArray(data.orders) ? data.orders : [];
+
+    if (orders.length === 0) {
+      liste.textContent = "Aucune commande enregistrée.";
+      return;
+    }
+
+    liste.replaceChildren();
+
+    for (const order of orders) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const titre = document.createElement("h3");
+      titre.textContent = "Commande #" + order.id;
+
+      const client = order.customer || {};
+
+      const nom = document.createElement("p");
+      nom.textContent =
+        "Client : " +
+        [client.firstName, client.lastName].filter(Boolean).join(" ");
+
+      const email = document.createElement("p");
+      email.textContent = "Email : " + (client.email || "");
+
+      const telephone = document.createElement("p");
+      telephone.textContent = "Téléphone : " + (client.phone || "");
+
+      const adresse = document.createElement("p");
+      adresse.textContent = "Adresse : " + (client.address || "");
+
+      const paiement = document.createElement("p");
+      paiement.textContent =
+        "Paiement : " + (order.payment_provider || "Non précisé");
+
+      const statut = document.createElement("p");
+      statut.textContent = "Statut : " + order.status;
+
+      const livraison = document.createElement("p");
+      livraison.textContent =
+        "Préparation : " + (order.fulfillment_status || "pending");
+
+      const montant = document.createElement("p");
+      montant.textContent = "Total : " + order.total_xof + " FCFA";
+
+      const articles = document.createElement("ul");
+
+      for (const item of order.items || []) {
+        const li = document.createElement("li");
+        li.textContent =
+          (item.product_name || "Produit #" + item.product_id) +
+          " — Quantité : " + item.quantity +
+          " — Prix unitaire : " + item.unit_price + " FCFA";
+
+        articles.appendChild(li);
+      }
+
+      card.append(
+        titre,
+        nom,
+        email,
+        telephone,
+        adresse,
+        paiement,
+        statut,
+        livraison,
+        montant,
+        articles
+      );
+
+      liste.appendChild(card);
+    }
+
+  } catch (error) {
+    liste.textContent = "Impossible de charger les commandes.";
+    showMessage(error.message, true);
+  }
+}
+
+$("refreshOrdersBtn").addEventListener("click", loadOrders);
 $("refreshBtn").addEventListener("click", async () => {
   clearMessage();
 

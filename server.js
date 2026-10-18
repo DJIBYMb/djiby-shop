@@ -232,6 +232,31 @@ if (!paymentProviderExiste) {
   console.log("Colonne payment_provider ajoutee");
 }
 
+// =====================================
+// SUIVI DES COLIS - BASE DE DONNEES
+// =====================================
+const colonnesSuivi = db.prepare(
+  "PRAGMA table_info(orders)"
+).all().map(colonne => colonne.name);
+
+const champsSuivi = [
+  "shipping_carrier",
+  "tracking_number",
+  "tracking_url",
+  "shipped_at"
+];
+
+for (const champ of champsSuivi) {
+  if (!colonnesSuivi.includes(champ)) {
+    const type = champ === "shipped_at" ? "INTEGER" : "TEXT";
+
+    db.exec(
+      `ALTER TABLE orders ADD COLUMN ${champ} ${type}`
+    );
+
+    console.log("Colonne de suivi ajoutée :", champ);
+  }
+}
 const clean = product => ({
   ...product,
   images: JSON.parse(product.images)
@@ -496,6 +521,10 @@ app.get("/admin/orders", admin, (req, res) => {
         status,
         payment_provider,
         fulfillment_status,
+        shipping_carrier,
+        tracking_number,
+        tracking_url,
+        shipped_at,
         created_at
       FROM orders
       ORDER BY created_at DESC, id DESC
@@ -529,6 +558,10 @@ app.get("/admin/orders", admin, (req, res) => {
         status: commande.status,
         payment_provider: commande.payment_provider,
         fulfillment_status: commande.fulfillment_status,
+        shipping_carrier: commande.shipping_carrier,
+        tracking_number: commande.tracking_number,
+        tracking_url: commande.tracking_url,
+        shipped_at: commande.shipped_at,
         created_at: commande.created_at,
         items: articles,
         total_xof: articles.reduce(
@@ -619,13 +652,71 @@ app.patch("/admin/orders/:id/fulfillment", admin, (req, res) => {
       });
     }
 
-    const resultat = db.prepare(`
-      UPDATE orders
-      SET fulfillment_status = ?
-      WHERE id = ?
-        AND status = 'paid'
-        AND fulfillment_status = ?
-    `).run(nouveauStatut, id, commande.fulfillment_status);
+    let resultat;
+
+    if (nouveauStatut === "shipped") {
+      const carrier = req.body?.shipping_carrier;
+      const tracking = req.body?.tracking_number;
+      const url = req.body?.tracking_url || "";
+
+      if (
+        typeof carrier !== "string" ||
+        typeof tracking !== "string" ||
+        typeof url !== "string" ||
+        !carrier.trim() ||
+        !tracking.trim() ||
+        carrier.trim().length > 100 ||
+        tracking.trim().length > 150 ||
+        url.length > 500
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Transporteur ou numéro de suivi invalide"
+        });
+      }
+
+      if (url.trim()) {
+        try {
+          const lien = new URL(url.trim());
+
+          if (!["https:", "http:"].includes(lien.protocol)) {
+            throw new Error("Protocole invalide");
+          }
+        } catch {
+          return res.status(400).json({
+            success: false,
+            message: "Lien de suivi invalide"
+          });
+        }
+      }
+
+      resultat = db.prepare(`
+        UPDATE orders
+        SET fulfillment_status = 'shipped',
+            shipping_carrier = ?,
+            tracking_number = ?,
+            tracking_url = ?,
+            shipped_at = ?
+        WHERE id = ?
+          AND status = 'paid'
+          AND fulfillment_status = 'preparing'
+      `).run(
+        carrier.trim(),
+        tracking.trim(),
+        url.trim(),
+        Date.now(),
+        id
+      );
+
+    } else {
+      resultat = db.prepare(`
+        UPDATE orders
+        SET fulfillment_status = ?
+        WHERE id = ?
+          AND status = 'paid'
+          AND fulfillment_status = ?
+      `).run(nouveauStatut, id, commande.fulfillment_status);
+    }
 
     if (resultat.changes !== 1) {
       return res.status(409).json({

@@ -568,6 +568,51 @@ async function loadOrders() {
          order.fulfillment_status ||
          "Non renseigné");
 
+      // Informations de suivi du colis
+      if (order.shipping_carrier || order.tracking_number) {
+
+        const suiviColis = document.createElement("div");
+
+        const transporteur = document.createElement("p");
+        transporteur.textContent =
+          "🚚 Transporteur : " + (order.shipping_carrier || "Non renseigné");
+
+        const numero = document.createElement("p");
+        numero.textContent =
+          "🔢 Numéro de suivi : " + (order.tracking_number || "Non renseigné");
+
+        suiviColis.append(transporteur, numero);
+
+        if (order.tracking_url) {
+          try {
+            const url = new URL(order.tracking_url);
+
+            if (["https:", "http:"].includes(url.protocol)) {
+              const lien = document.createElement("a");
+              lien.href = url.href;
+              lien.textContent = "🔗 Suivre le colis";
+              lien.target = "_blank";
+              lien.rel = "noopener noreferrer";
+
+              suiviColis.appendChild(lien);
+            }
+          } catch {
+            // Lien invalide : ne pas l'afficher
+          }
+        }
+
+        if (order.shipped_at) {
+          const dateExpedition = document.createElement("p");
+
+          dateExpedition.textContent =
+            "📅 Expédiée le : " +
+            new Date(order.shipped_at).toLocaleString("fr-FR");
+
+          suiviColis.appendChild(dateExpedition);
+        }
+
+        card.appendChild(suiviColis);
+      }
       const transitions = {
         pending: ["preparing", "📦 Commencer la préparation"],
         preparing: ["shipped", "🚚 Marquer comme expédiée"],
@@ -582,6 +627,43 @@ async function loadOrders() {
         boutonLivraison.textContent = transition[1];
 
         boutonLivraison.addEventListener("click", async () => {
+          const donneesLivraison = {
+            fulfillment_status: transition[0]
+          };
+
+          if (transition[0] === "shipped") {
+            const transporteur = prompt(
+              "Nom du transporteur (Colissimo, DHL, Chronopost...) :"
+            );
+
+            if (transporteur === null) return;
+
+            const numeroSuivi = prompt(
+              "Numéro de suivi du colis :"
+            );
+
+            if (numeroSuivi === null) return;
+
+            const lienSuivi = prompt(
+              "Lien de suivi du colis (facultatif) :",
+              ""
+            );
+
+            if (lienSuivi === null) return;
+
+            if (!transporteur.trim() || !numeroSuivi.trim()) {
+              showMessage(
+                "Le transporteur et le numéro de suivi sont obligatoires.",
+                true
+              );
+              return;
+            }
+
+            donneesLivraison.shipping_carrier = transporteur.trim();
+            donneesLivraison.tracking_number = numeroSuivi.trim();
+            donneesLivraison.tracking_url = lienSuivi.trim();
+          }
+
           if (!confirm("Confirmer le changement de statut de cette commande ?")) {
             return;
           }
@@ -596,9 +678,7 @@ async function loadOrders() {
                 headers: {
                   "Content-Type": "application/json"
                 },
-                body: JSON.stringify({
-                  fulfillment_status: transition[0]
-                })
+                body: JSON.stringify(donneesLivraison)
               }
             );
 

@@ -366,7 +366,7 @@ app.get("/test", (req, res) => {
 
 app.get("/products", (req, res) => {
   const products = db.prepare(
-    "SELECT * FROM products ORDER BY id DESC"
+    "SELECT * FROM products WHERE id != 28 ORDER BY id DESC"
   ).all().map(clean);
 
   res.json(products);

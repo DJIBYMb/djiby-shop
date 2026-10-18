@@ -549,6 +549,106 @@ app.get("/admin/orders", admin, (req, res) => {
     });
   }
 });
+// =====================================
+// SUIVI DES LIVRAISONS - ADMINISTRATION
+// =====================================
+app.patch("/admin/orders/:id/fulfillment", admin, (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const nouveauStatut = req.body?.fulfillment_status;
+
+    const statuts = [
+      "pending",
+      "preparing",
+      "shipped",
+      "delivered"
+    ];
+
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Identifiant de commande invalide"
+      });
+    }
+
+    if (!statuts.includes(nouveauStatut)) {
+      return res.status(400).json({
+        success: false,
+        message: "Statut de livraison invalide"
+      });
+    }
+
+    const commande = db.prepare(`
+      SELECT id, status, fulfillment_status
+      FROM orders
+      WHERE id = ?
+    `).get(id);
+
+    if (!commande) {
+      return res.status(404).json({
+        success: false,
+        message: "Commande introuvable"
+      });
+    }
+
+    if (commande.status !== "paid") {
+      return res.status(409).json({
+        success: false,
+        message: "Le paiement doit être confirmé"
+      });
+    }
+
+    if (commande.fulfillment_status === "stock_issue") {
+      return res.status(409).json({
+        success: false,
+        message: "Problème de stock à résoudre"
+      });
+    }
+
+    const transitions = {
+      pending: ["preparing"],
+      preparing: ["shipped"],
+      shipped: ["delivered"],
+      delivered: []
+    };
+
+    if (!transitions[commande.fulfillment_status]?.includes(nouveauStatut)) {
+      return res.status(409).json({
+        success: false,
+        message: "Changement de statut non autorisé"
+      });
+    }
+
+    const resultat = db.prepare(`
+      UPDATE orders
+      SET fulfillment_status = ?
+      WHERE id = ?
+        AND status = 'paid'
+        AND fulfillment_status = ?
+    `).run(nouveauStatut, id, commande.fulfillment_status);
+
+    if (resultat.changes !== 1) {
+      return res.status(409).json({
+        success: false,
+        message: "La commande a changé. Actualisez la liste."
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Statut de livraison actualisé",
+      fulfillment_status: nouveauStatut
+    });
+
+  } catch (error) {
+    console.error("Erreur suivi livraison:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Impossible de modifier la livraison"
+    });
+  }
+});
 app.get("/admin/check", admin, (req, res) => {
   res.json({ success: true });
 });

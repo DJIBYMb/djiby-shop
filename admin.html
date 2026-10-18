@@ -554,6 +554,66 @@ async function loadOrders() {
         articles
       );
 
+      const statutsLivraison = {
+        pending: "🟡 En attente",
+        preparing: "📦 En préparation",
+        shipped: "🚚 Expédiée",
+        delivered: "✅ Livrée",
+        stock_issue: "⚠️ Problème de stock"
+      };
+
+      livraison.textContent =
+        "Livraison : " +
+        (statutsLivraison[order.fulfillment_status] ||
+         order.fulfillment_status ||
+         "Non renseigné");
+
+      const transitions = {
+        pending: ["preparing", "📦 Commencer la préparation"],
+        preparing: ["shipped", "🚚 Marquer comme expédiée"],
+        shipped: ["delivered", "✅ Marquer comme livrée"]
+      };
+
+      const transition = transitions[order.fulfillment_status];
+
+      if (order.status === "paid" && transition) {
+        const boutonLivraison = document.createElement("button");
+        boutonLivraison.type = "button";
+        boutonLivraison.textContent = transition[1];
+
+        boutonLivraison.addEventListener("click", async () => {
+          if (!confirm("Confirmer le changement de statut de cette commande ?")) {
+            return;
+          }
+
+          boutonLivraison.disabled = true;
+
+          try {
+            await request(
+              "/admin/orders/" + order.id + "/fulfillment",
+              {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                  fulfillment_status: transition[0]
+                })
+              }
+            );
+
+            await loadOrders();
+            showMessage("Statut de livraison actualisé.");
+
+          } catch (error) {
+            showMessage(error.message, true);
+            boutonLivraison.disabled = false;
+          }
+        });
+
+        card.appendChild(boutonLivraison);
+      }
+
       liste.appendChild(card);
     }
 

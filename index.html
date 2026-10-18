@@ -180,7 +180,7 @@ border-radius:15px;
           <input type="radio" name="paymentMethod" value="paydunya" checked>
           PayDunya
         </label>
-        <label hidden style="display:none;margin:10px 0;">
+        <label style="display:block;margin:10px 0;">
           <input type="radio" name="paymentMethod" value="stripe">
           Carte bancaire (Stripe)
         </label>
@@ -188,8 +188,8 @@ border-radius:15px;
       <input id="firstName" placeholder="Prénom" required>
       <input id="lastName" placeholder="Nom de famille" required>
       <input id="email" type="email" placeholder="Email" required>
-      <input id="phone" placeholder="Téléphone Sénégal" required>
-      <input id="address" placeholder="Adresse Sénégal" required>
+      <input id="phone" placeholder="Téléphone (avec indicatif du pays)" required>
+      <input id="address" placeholder="Adresse complète de livraison" required>
       <button class="btn" type="submit">Continuer vers paiement</button>
     </form>
   </div>

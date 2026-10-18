@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const paydunya = require("paydunya");
@@ -1798,8 +1798,8 @@ if (
 },
         quantity: 1
       }],
-      success_url: "https://djibymb.github.io/djiby-shop/success.html?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url: "https://djibymb.github.io/djiby-shop/"
+      success_url: SITE_URL + "/success.html?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: SITE_URL + "/"
     }, { idempotencyKey: `sunushop-order-${orderId}` });
 
     db.prepare("UPDATE orders SET invoice_token = ? WHERE id = ? AND status = 'pending'")

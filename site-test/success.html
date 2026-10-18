@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmation de commande - DJIBY SHOP</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: white;
+  color: #222;
+  text-align: center;
+  padding: 30px 16px;
+}
+.box {
+  border: 2px solid #222;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 500px;
+  margin: auto;
+}
+h1 { color: #176b36; }
+.btn {
+  display: block;
+  background: #111;
+  color: white;
+  padding: 15px;
+  border-radius: 12px;
+  text-decoration: none;
+  margin-top: 22px;
+}
+#payment-details { line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h1 id="payment-status">VÃ©rification du paiement?</h1>
+  <h2>Merci de votre visite chez DJIBY SHOP</h2>
+  <p id="payment-details" aria-live="polite">
+    Nous v?rifions le statut de votre paiement.
+  </p>
+  <p><strong>WhatsApp :</strong> 33745098191</p>
+  <p><strong>Email :</strong> djibyshop14@gmail.com</p>
+  <a class="btn" href="index.html">Retour ? la boutique</a>
+</div>
+
+<script>
+(function () {
+  const title = document.getElementById("payment-status");
+  const details = document.getElementById("payment-details");
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get("session_id");
+
+  if (!sessionId) {
+    title.textContent = "Confirmation du paiement en attente";
+    details.textContent =
+      "Le statut du paiement n'est pas vÃ©rifiÃ© sur cette page. " +
+      "Si vous avez payÃ© avec PayDunya, sa confirmation doit Ãªtre " +
+      "vÃ©rifiÃ©e par le systÃ¨me de paiement.";
+    return;
+  }
+
+  // Adresse rÃ©servÃ©e aux tests locaux.
+  // Elle ne fonctionnera pas pour les clients sur Internet.
+  const API_URL = "https://sunushop-test.onrender.com";
+
+  async function verifyPayment() {
+    try {
+      const response = await fetch(
+        API_URL + "/stripe-payment-status?session_id=" +
+        encodeURIComponent(sessionId),
+        { cache: "no-store" }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.status === "paid") {
+        title.textContent = "Paiement confirmÃ©";
+        details.textContent =
+          "Votre paiement a ?t? confirmÃ©. Merci pour votre commande.";
+      } else if (
+        response.ok &&
+        ["pending", "processing"].includes(result.status)
+      ) {
+        title.textContent = "Confirmation du paiement en cours";
+        details.textContent =
+          "Votre paiement est en cours de vÃ©rification. " +
+          "Veuillez patienter avant de contacter le service client.";
+      } else {
+        title.textContent = "Paiement non vÃ©rifiÃ©";
+        details.textContent =
+          "Nous ne pouvons pas encore confirmer votre paiement. " +
+          "Si votre compte a ?t? dÃ©bitÃ©, ne payez pas une deuxiÃ¨me fois ; " +
+          "contactez le service client.";
+      }
+    } catch (error) {
+      title.textContent = "VÃ©rification indisponible";
+      details.textContent =
+        "Nous ne pouvons pas v?rifier le paiement pour le moment. " +
+        "Si votre compte a ?t? dÃ©bitÃ©, ne payez pas une deuxiÃ¨me fois ; " +
+        "contactez le service client.";
+    }
+  }
+
+  // VÃ©rifier immÃ©diatement, puis rÃ©essayer si nÃ©cessaire.
+  let tentatives = 0;
+  const maximumTentatives = 6;
+
+  async function verifierAvecRelance() {
+    await verifyPayment();
+
+    const titre = title.textContent;
+
+    if (
+      tentatives < maximumTentatives - 1 &&
+      titre === "Confirmation du paiement en cours"
+    ) {
+      tentatives++;
+      setTimeout(verifierAvecRelance, 5000);
+    }
+  }
+
+  verifierAvecRelance();
+})();
+</script>
+</body>
+</html>
+
+

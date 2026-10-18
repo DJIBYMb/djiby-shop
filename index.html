@@ -166,6 +166,68 @@ border-radius:15px;
 
 </div>
 
+<!-- SUNU SHOP : sélection du pays pour les prix -->
+<div id="shopCountrySelector" style="padding:12px;text-align:center;">
+  <label for="shopCountry">
+    🌍 Votre pays :
+  </label>
+
+  <select id="shopCountry">
+
+  <optgroup label="🇪🇺 EURO (€)">
+    <option value="FR">🇫🇷 France</option>
+    <option value="DE">🇩🇪 Allemagne</option>
+    <option value="BE">🇧🇪 Belgique</option>
+    <option value="ES">🇪🇸 Espagne</option>
+    <option value="IT">🇮🇹 Italie</option>
+    <option value="PT">🇵🇹 Portugal</option>
+    <option value="NL">🇳🇱 Pays-Bas</option>
+    <option value="LU">🇱🇺 Luxembourg</option>
+    <option value="AT">🇦🇹 Autriche</option>
+    <option value="IE">🇮🇪 Irlande</option>
+    <option value="FI">🇫🇮 Finlande</option>
+    <option value="GR">🇬🇷 Grèce</option>
+    <option value="HR">🇭🇷 Croatie</option>
+    <option value="SI">🇸🇮 Slovénie</option>
+    <option value="SK">🇸🇰 Slovaquie</option>
+    <option value="EE">🇪🇪 Estonie</option>
+    <option value="LV">🇱🇻 Lettonie</option>
+    <option value="LT">🇱🇹 Lituanie</option>
+    <option value="MT">🇲🇹 Malte</option>
+    <option value="CY">🇨🇾 Chypre</option>
+    <option value="BG">🇧🇬 Bulgarie</option>
+    <option value="AD">🇦🇩 Andorre</option>
+    <option value="MC">🇲🇨 Monaco</option>
+    <option value="SM">🇸🇲 Saint-Marin</option>
+    <option value="VA">🇻🇦 Vatican</option>
+    <option value="ME">🇲🇪 Monténégro</option>
+    <option value="XK">🇽🇰 Kosovo</option>
+  </optgroup>
+
+  <optgroup label="🌍 AFRIQUE DE L'OUEST — XOF">
+    <option value="SN">🇸🇳 Sénégal</option>
+    <option value="CI">🇨🇮 Côte d'Ivoire</option>
+    <option value="ML">🇲🇱 Mali</option>
+    <option value="BF">🇧🇫 Burkina Faso</option>
+    <option value="BJ">🇧🇯 Bénin</option>
+    <option value="TG">🇹🇬 Togo</option>
+    <option value="NE">🇳🇪 Niger</option>
+    <option value="GW">🇬🇼 Guinée-Bissau</option>
+  </optgroup>
+
+  <optgroup label="🌍 AFRIQUE CENTRALE — XAF">
+    <option value="CM">🇨🇲 Cameroun</option>
+    <option value="GA">🇬🇦 Gabon</option>
+    <option value="CG">🇨🇬 Congo</option>
+    <option value="TD">🇹🇩 Tchad</option>
+    <option value="CF">🇨🇫 Centrafrique</option>
+    <option value="GQ">🇬🇶 Guinée équatoriale</option>
+  </optgroup>
+
+</select>
+
+</div>
+
 <div id="orderModal" class="modal">
   <button onclick="closeOrder()" class="back-btn">⬅ Retour au site</button>
 
@@ -189,6 +251,61 @@ border-radius:15px;
       <input id="lastName" placeholder="Nom de famille" required>
       <input id="email" type="email" placeholder="Email" required>
       <input id="phone" placeholder="Téléphone (avec indicatif du pays)" required>
+      <label for="country">🌍 Pays de livraison :</label>
+
+<select id="country" required>
+  <option value="">-- Choisissez votre pays --</option>
+
+  <optgroup label="🇪🇺 EURO (€)">
+    <option value="FR">France</option>
+    <option value="DE">Allemagne</option>
+    <option value="BE">Belgique</option>
+    <option value="ES">Espagne</option>
+    <option value="IT">Italie</option>
+    <option value="PT">Portugal</option>
+    <option value="NL">Pays-Bas</option>
+    <option value="LU">Luxembourg</option>
+    <option value="AT">Autriche</option>
+    <option value="IE">Irlande</option>
+    <option value="FI">Finlande</option>
+    <option value="GR">Grèce</option>
+    <option value="HR">Croatie</option>
+    <option value="SI">Slovénie</option>
+    <option value="SK">Slovaquie</option>
+    <option value="EE">Estonie</option>
+    <option value="LV">Lettonie</option>
+    <option value="LT">Lituanie</option>
+    <option value="MT">Malte</option>
+    <option value="CY">Chypre</option>
+    <option value="BG">Bulgarie</option>
+    <option value="AD">Andorre</option>
+    <option value="MC">Monaco</option>
+    <option value="SM">Saint-Marin</option>
+    <option value="VA">Vatican</option>
+    <option value="ME">Monténégro</option>
+    <option value="XK">Kosovo</option>
+  </optgroup>
+
+  <optgroup label="🌍 AFRIQUE DE L'OUEST — XOF">
+    <option value="SN">Sénégal</option>
+    <option value="CI">Côte d'Ivoire</option>
+    <option value="ML">Mali</option>
+    <option value="BF">Burkina Faso</option>
+    <option value="BJ">Bénin</option>
+    <option value="TG">Togo</option>
+    <option value="NE">Niger</option>
+    <option value="GW">Guinée-Bissau</option>
+  </optgroup>
+
+  <optgroup label="🌍 AFRIQUE CENTRALE — XAF">
+    <option value="CM">Cameroun</option>
+    <option value="GA">Gabon</option>
+    <option value="CG">Congo</option>
+    <option value="TD">Tchad</option>
+    <option value="CF">Centrafrique</option>
+    <option value="GQ">Guinée équatoriale</option>
+  </optgroup>
+</select>
       <input id="address" placeholder="Adresse complète de livraison" required>
       <button class="btn" type="submit">Continuer vers paiement</button>
     </form>
@@ -204,6 +321,141 @@ border-radius:15px;
 
 <script>
 const API_URL = "https://djiby-sho.onrender.com";
+
+// SUNU SHOP : synchronisation des pays
+document.addEventListener("DOMContentLoaded", function () {
+
+  const shopCountry = document.getElementById("shopCountry");
+  const orderCountry = document.getElementById("country");
+
+  if (!shopCountry || !orderCountry) return;
+
+  // Synchroniser le pays du formulaire avec la boutique
+  orderCountry.value = shopCountry.value;
+
+  // Quand le client change de pays sur la boutique
+  shopCountry.addEventListener("change", function () {
+
+    orderCountry.value = shopCountry.value;
+
+    // Actualiser les prix des produits
+    if (typeof searchProducts === "function") {
+  searchProducts();
+}
+
+// Actualiser le prix dans le formulaire de commande
+updateSelectedOrderPrice();
+
+  // Actualiser le prix du produit actuellement ouvert
+if (detailProduct) {
+  const detailPrice = document.getElementById("detailPrice");
+
+  if (detailPrice) {
+    detailPrice.innerText = formatShopPrice(detailProduct.price);
+  }
+}
+
+    // Actualiser le panier
+    if (typeof renderCart === "function") {
+      renderCart();
+    }
+  });
+
+  // Quand le client change de pays dans le formulaire
+  orderCountry.addEventListener("change", function () {
+
+// Synchroniser le pays de la boutique avec celui de la commande
+shopCountry.value = orderCountry.value;
+
+// Actualiser les produits en conservant la recherche
+if (typeof searchProducts === "function") {
+  searchProducts();
+}
+
+// Actualiser le prix dans le formulaire de commande
+updateSelectedOrderPrice();
+
+// Actualiser le 
+// prix du produit actuellement ouvert
+if (detailProduct) {
+  const detailPrice = document.getElementById("detailPrice");
+
+  if (detailPrice) {
+    detailPrice.innerText = formatShopPrice(detailProduct.price);
+  }
+}
+    if (typeof renderCart === "function") {
+      renderCart();
+    }
+  });
+
+});
+
+// SUNU SHOP : devise selon le pays sélectionné
+function getCurrencyByCountry(country) {
+
+  const xofCountries = [
+    "SN", "CI", "ML", "BF",
+    "BJ", "TG", "NE", "GW"
+  ];
+
+  const xafCountries = [
+    "CM", "GA", "CG",
+    "TD", "CF", "GQ"
+  ];
+
+  const eurCountries = [
+    "FR", "DE", "BE", "ES", "IT",
+    "PT", "NL", "LU", "AT", "IE",
+    "FI", "GR", "HR", "SI", "SK",
+    "EE", "LV", "LT", "MT", "CY",
+    "BG", "AD", "MC", "SM", "VA",
+    "ME", "XK"
+  ];
+
+  if (xofCountries.includes(country)) {
+    return "xof";
+  }
+
+  if (xafCountries.includes(country)) {
+    return "xaf";
+  }
+
+  if (eurCountries.includes(country)) {
+    return "eur";
+  }
+
+  return null;
+}
+
+// SUNU SHOP : conversion des prix pour l'affichage
+const EURO_TO_CFA = 655.957;
+
+function formatShopPrice(priceXof) {
+
+  const country =
+  document.getElementById("shopCountry")?.value ||
+  document.getElementById("country")?.value ||
+  "SN";
+
+  const currency = getCurrencyByCountry(country);
+
+  if (currency === "eur") {
+    const euros = priceXof / EURO_TO_CFA;
+
+    return euros.toLocaleString("fr-FR", {
+      style: "currency",
+      currency: "EUR"
+    });
+
+  }
+
+  if (currency === "xaf") {
+    return Math.round(priceXof).toLocaleString("fr-FR") + " FCFA (XAF)";
+  }
+
+  return Math.round(priceXof).toLocaleString("fr-FR") + " FCFA (XOF)";
+}
 
 let selectedProduct = null;
 let detailProduct = null;
@@ -334,7 +586,7 @@ function renderCart() {
 
     const details = document.createElement("p");
     details.textContent =
-      `${quantity} × ${product.price} FCFA = ${subtotal} FCFA`;
+      `${quantity} × ${formatShopPrice(product.price)} = ${formatShopPrice(subtotal)}`;
 
       // Afficher le nom et le prix
 div.appendChild(name);
@@ -393,7 +645,7 @@ box.appendChild(div);
 
   });
 
-totalElement.textContent = `Total : ${total} FCFA`;
+totalElement.textContent = `Total : ${formatShopPrice(total)}`;
 
 // Activer le paiement uniquement si le panier contient des produits
 const checkoutBtn = document.getElementById("cartCheckoutBtn");
@@ -503,7 +755,7 @@ function renderProducts(list){
     box.innerHTML += `
       <div class="card simple-card" onclick="showProductDetails(${p.id})">
         <img class="product-main-img" src="${p.images[0]}">
-        <div class="simple-price">${p.price} FCFA</div>
+        <div class="simple-price">${formatShopPrice(p.price)}</div>
       </div>`;
   });
 }
@@ -535,7 +787,8 @@ function showProductDetails(id){
 
   document.getElementById("detailMainImage").src = detailProduct.images[detailIndex];
   document.getElementById("detailName").innerText = detailProduct.name;
-  document.getElementById("detailPrice").innerText = detailProduct.price + " FCFA";
+  document.getElementById("detailPrice").innerText =
+  formatShopPrice(detailProduct.price);
   document.getElementById("detailDescription").innerHTML = detailProduct.description;
   document.getElementById("detailStock").innerText = "Produit restant : " + detailProduct.stock;
 
@@ -579,14 +832,26 @@ function closeProductDetails(){
   document.getElementById("productDetail").style.display = "none";
 }
 
+function updateSelectedOrderPrice() {
+
+  if (checkoutMode === "single" && selectedProduct) {
+
+    document.getElementById("selectedText").innerText =
+      selectedProduct.name + " - " +
+      formatShopPrice(selectedProduct.price);
+
+  }
+
+}
+
 function openOrder(id){
 
     checkoutMode = "single";
 
   selectedProduct = products.find(p => p.id === id);
 
-  document.getElementById("selectedText").innerText =
-  selectedProduct.name + " - " + selectedProduct.price + " FCFA";
+document.getElementById("selectedText").innerText =
+  selectedProduct.name + " - " + formatShopPrice(selectedProduct.price);
 
   document.getElementById("orderModal").style.display = "flex";
 }
@@ -598,14 +863,14 @@ function closeOrder(){
 document.getElementById("orderForm").addEventListener("submit", function(e){
   e.preventDefault();
 
-  const customer = {
-    firstName: document.getElementById("firstName").value,
-    lastName: document.getElementById("lastName").value,
-    email: document.getElementById("email").value,
-    phone: document.getElementById("phone").value,
-    address: document.getElementById("address").value
-  };
-
+const customer = {
+  firstName: document.getElementById("firstName").value.trim(),
+  lastName: document.getElementById("lastName").value.trim(),
+  email: document.getElementById("email").value.trim(),
+  phone: document.getElementById("phone").value.trim(),
+  country: document.getElementById("country").value,
+  address: document.getElementById("address").value.trim()
+};
   // Choisir le paiement individuel ou le paiement du panier
 const paymentMethod = document.querySelector(
   'input[name="paymentMethod"]:checked'

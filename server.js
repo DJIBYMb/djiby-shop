@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const paydunya = require("paydunya");
@@ -75,11 +75,12 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), (req, res
 
   try {
     const session = event.data.object;
-    if (session.payment_status !== "paid" ||
-        session.mode !== "payment" ||
-        session.currency !== "eur") {
-      return res.json({ received: true });
-    }
+if (
+  session.payment_status !== "paid" ||
+  session.mode !== "payment"
+) {
+  return res.json({ received: true });
+}
     const orderId = Number(session.metadata?.order_id);
     if (!Number.isSafeInteger(orderId) || orderId <= 0) {
       return res.status(400).send("Commande Stripe invalide");
@@ -106,13 +107,48 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), (req, res
         "SELECT product_id, quantity, unit_price FROM order_items WHERE order_id = ?"
       ).all(orderId);
       if (!articles.length) throw new Error("Commande sans articles");
-      const totalXof = articles.reduce((sum, a) => sum + a.quantity * a.unit_price, 0);
-      const expectedCents = Math.round(totalXof * 100 / 655.957);
-      if (!Number.isSafeInteger(totalXof) ||
-          session.amount_total !== expectedCents ||
-          session.amount_total < 50) {
-        throw new Error("Montant Stripe non conforme");
-      }
+      // Récupérer le pays enregistré lors de la commande
+let customer;
+
+try {
+  customer = JSON.parse(order.customer);
+} catch (error) {
+  throw new Error("Informations client invalides");
+}
+
+// Déterminer la devise attendue selon le pays
+const expectedCurrency = getStripeCurrencyByCountry(customer?.country);
+
+if (!expectedCurrency) {
+  throw new Error("Pays de commande non pris en charge");
+}
+
+// Recalculer le montant à partir des articles enregistrés
+const totalXof = articles.reduce(
+  (sum, a) => sum + a.quantity * a.unit_price,
+  0
+);
+
+// EUR : centimes / XOF et XAF : unités entières
+const expectedAmount =
+  expectedCurrency === "eur"
+    ? Math.round(totalXof * 100 / 655.957)
+    : totalXof;
+
+const minimumAmount =
+  expectedCurrency === "eur" ? 50 : 328;
+
+// Vérifier simultanément le montant et la devise
+if (
+  !Number.isSafeInteger(totalXof) ||
+  !Number.isSafeInteger(expectedAmount) ||
+  expectedAmount < minimumAmount ||
+  expectedAmount > 99999999 ||
+  session.currency !== expectedCurrency ||
+  session.amount_total !== expectedAmount
+) {
+  throw new Error("Montant ou devise Stripe non conforme");
+}
       if (order.status !== "pending") return; // Webhook deja traite
       const available = articles.every(a => {
         const p = db.prepare("SELECT stock FROM products WHERE id = ?").get(a.product_id);
@@ -1577,19 +1613,66 @@ app.post("/admin/create-stripe-test-payment", admin, (req, res) => {
   return createStripePayment(req, res);
 });
 
+// SUNU SHOP : déterminer la devise selon le pays
+function getStripeCurrencyByCountry(country) {
+
+  const xofCountries = [
+    "SN", "CI", "ML", "BF",
+    "BJ", "TG", "NE", "GW"
+  ];
+
+  const xafCountries = [
+    "CM", "GA", "CG",
+    "TD", "CF", "GQ"
+  ];
+
+  const eurCountries = [
+    "FR", "DE", "BE", "ES", "IT",
+    "PT", "NL", "LU", "AT", "IE",
+    "FI", "GR", "HR", "SI", "SK",
+    "EE", "LV", "LT", "MT", "CY",
+    "BG", "AD", "MC", "SM", "VA",
+    "ME", "XK"
+  ];
+
+  if (xofCountries.includes(country)) {
+    return "xof";
+  }
+
+  if (xafCountries.includes(country)) {
+    return "xaf";
+  }
+
+  if (eurCountries.includes(country)) {
+    return "eur";
+  }
+
+  return null;
+}
+
 async function createStripePayment(req, res) {
   if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
     return res.status(503).json({ success: false, message: "Stripe non configure" });
   }
   const items = req.body?.items;
   const customer = req.body?.customer;
-  const fields = ["firstName", "lastName", "email", "phone", "address"];
+  const fields = ["firstName", "lastName", "email", "phone", "address", "country"];
   if (!customer || !fields.every(key =>
     typeof customer[key] === "string" &&
     customer[key].trim().length > 0 && customer[key].length < 250
   ) || !Array.isArray(items) || items.length < 1 || items.length > 30) {
     return res.status(400).json({ success: false, message: "Panier ou client invalide" });
   }
+
+  // Déterminer la devise Stripe selon le pays du client
+const stripeCurrency = getStripeCurrencyByCountry(customer.country);
+
+if (!stripeCurrency) {
+  return res.status(400).json({
+    success: false,
+    message: "Pays non pris en charge pour le paiement Stripe"
+  });
+}
 
   const products = [];
   const ids = new Set();
@@ -1616,12 +1699,29 @@ async function createStripePayment(req, res) {
     products.push({ ...product, quantity });
   }
 
-  // 1 EUR = 655,957 XOF. Stripe attend des centimes entiers.
-  const cents = Math.round(totalXof * 100 / 655.957);
-  if (!Number.isSafeInteger(cents) || cents < 50 || cents > 99999999) {
-    return res.status(400).json({ success: false, message: "Montant non pris en charge" });
-  }
+// SUNU SHOP : calcul du montant selon la devise
+// EUR : centimes
+// XOF et XAF : unités entières, sans centimes
 
+const stripeAmount =
+  stripeCurrency === "eur"
+    ? Math.round(totalXof * 100 / 655.957)
+    : totalXof;
+
+// Vérification du montant
+const minimumAmount =
+  stripeCurrency === "eur" ? 50 : 328;
+
+if (
+  !Number.isSafeInteger(stripeAmount) ||
+  stripeAmount < minimumAmount ||
+  stripeAmount > 99999999
+) {
+  return res.status(400).json({
+    success: false,
+    message: "Montant non pris en charge"
+  });
+}
   let orderId;
   try {
     // On enregistre d'abord la commande en attente, sans modifier le stock.
@@ -1647,11 +1747,14 @@ async function createStripePayment(req, res) {
       client_reference_id: String(orderId),
       metadata: { order_id: String(orderId) },
       line_items: [{
+
         price_data: {
-          currency: "eur",
-          unit_amount: cents,
-          product_data: { name: `Commande SunuShop #${orderId} (${totalXof} FCFA)` }
-        },
+  currency: stripeCurrency,
+  unit_amount: stripeAmount,
+  product_data: {
+    name: `Commande SunuShop #${orderId} (${totalXof} FCFA)`
+  }
+},
         quantity: 1
       }],
       success_url: "https://djibymb.github.io/djiby-shop/success.html?session_id={CHECKOUT_SESSION_ID}",

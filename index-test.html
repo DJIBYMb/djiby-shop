@@ -1,0 +1,960 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>DJIBY SHOP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#000000">
+
+<style>
+body{margin:0;font-family:Arial;background:white;color:black}
+header{background:black;color:white;text-align:center;padding:20px;font-size:34px;font-weight:bold;display:flex;flex-direction:column;align-items:center}
+.logo{width:90px;height:90px;object-fit:cover;border-radius:50%;margin-bottom:10px}
+nav{text-align:center;background:#eee;padding:15px}
+nav a{color:black;text-decoration:none;margin:10px;font-weight:bold}
+.hero{text-align:center;padding:30px}
+.search{text-align:center;padding:15px}
+.search input{width:85%;max-width:500px;padding:15px;border:2px solid black;border-radius:12px}
+.products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px}
+.card{border:2px solid black;border-radius:15px;overflow:hidden;box-shadow:0 4px 10px #aaa}
+.simple-card{cursor:pointer;position:relative}
+.product-main-img{width:100%;height:320px;object-fit:cover;display:block}
+.simple-price{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,0.6);
+backdrop-filter:blur(3px);color:white;padding:8px 10px;border-radius:8px;font-weight:bold}
+.slider-detail{position:relative}
+#detailMainImage{
+width:100%;
+height:420px;
+object-fit:contain;
+background:white;
+border-radius:15px;
+}
+.slide-btn{position:absolute;top:45%;background:black;color:white;border:none;border-radius:50%;width:30px;height:30px}
+.prev{left:5px}
+.next{right:5px}
+.desc{background:#f4f4f4;padding:10px;border-radius:10px;font-size:13px}
+.price{font-weight:bold;margin:10px 0;font-size:18px}
+.stock{margin:10px 0;font-weight:bold;color:green}
+.btn{background:black;color:white;padding:12px;border:none;border-radius:10px;width:100%;font-weight:bold}
+.out{background:gray;cursor:not-allowed}
+.contact{background:black;color:white;text-align:center;padding:30px}
+.contact a{display:block;color:white;text-decoration:none;margin:12px}
+#topBtn{position:fixed;right:20px;bottom:20px;border-radius:50%;width:55px;height:55px;background:black;color:white;font-size:25px}
+.modal,#robot,#bigImage{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);justify-content:center;align-items:center;z-index:9999}
+#robot{display:flex}
+.box{background:white;color:black;padding:25px;border-radius:20px;width:90%;max-width:420px;text-align:center;max-height:90vh;overflow:auto}
+.box input{width:100%;padding:13px;margin:8px 0;border:2px solid black;border-radius:10px;box-sizing:border-box}
+.back-btn{position:absolute;top:20px;left:20px;background:black;color:white;border:none;padding:10px 18px;border-radius:10px;font-weight:bold;cursor:pointer;width:auto}
+#bigImage img{max-width:90%;max-height:85%}
+.back{position:absolute;top:20px;left:20px;color:white;font-size:45px;cursor:pointer}
+</style>
+</head>
+
+<body>
+
+<div id="robot">
+  <div class="box">
+    <h2>VÃ©rification sÃ©curitÃ©</h2>
+    <p>Combien fait 4 + 3 ?</p>
+    <input id="robotAnswer" type="number" placeholder="RÃ©ponse">
+    <button class="btn" onclick="checkRobot()">Entrer</button>
+    <p id="robotError"></p>
+  </div>
+</div>
+
+<header>
+  <img src="md.jpeg" class="logo">
+  <div>DJIBY SHOP</div>
+</header>
+
+<nav>
+  <a href="#products">Articles</a>
+  <a href="#contact">Contact</a>
+</nav>
+
+<section class="hero">
+  <h1>Bienvenue sur DJIBY SHOP ðŸ›’</h1>
+  <p>Produits de qualitÃ© â€” paiement sÃ©curisÃ©</p>
+</section>
+
+<div class="search">
+  <input id="searchInput" onkeyup="searchProducts()" placeholder="Rechercher un produit...">
+</div>
+
+<!-- ðŸ›’ BOUTON MON PANIER -->
+<div style="text-align:right; padding:10px 15px;">
+
+  <button
+    type="button"
+    class="btn"
+    onclick="openCart()"
+    style="width:auto; padding:10px 18px;"
+  >
+    ðŸ›’ Mon panier
+  </button>
+
+</div>
+
+<section id="products" class="products"></section>
+
+<div id="productDetail" class="modal">
+  <button onclick="closeProductDetails()" class="back-btn">â¬… Retour</button>
+
+  <div class="box">
+    <h2 id="detailName"></h2>
+
+    <div class="slider-detail">
+      <button class="slide-btn prev" onclick="changeDetailImage(-1)">â€¹</button>
+      <img id="detailMainImage">
+      <button class="slide-btn next" onclick="changeDetailImage(1)">â€º</button>
+    </div>
+
+    <div class="price" id="detailPrice"></div>
+    <div class="stock" id="detailStock"></div>
+    <div class="desc" id="detailDescription"></div>
+    <br>
+    <button class="btn" id="detailPayBtn">Payer ce produit</button>
+    <button
+  class="btn"
+  id="detailAddCartBtn"
+  type="button"
+  style="background:#16803c;"
+  onclick="addToCart(detailProduct.id)"
+>
+  ðŸ›’ Ajouter au panier
+</button>
+  </div>
+</div>
+
+<section id="contact" class="contact">
+  <h2>Contact</h2>
+  <a href="mailto:djibyshop14@gmail.com">ðŸ“§ mail</a>
+  <a href="https://www.tiktok.com/@djibyshop" target="_blank">TikTok</a>
+  <a href="https://wa.me/33745098191" target="_blank">ðŸ’¬ WhatsApp</a>
+</section>
+
+<!-- ðŸ›’ PANIER DJIBY SHOP -->
+<div id="cartModal" class="modal">
+
+  <button
+    type="button"
+    class="back-btn"
+    onclick="closeCart()"
+  >
+    â¬… Retour Ã  la boutique
+  </button>
+
+  <div style="padding:20px; width:100%; max-width:500px; margin:auto;">
+
+    <h2>ðŸ›’ Mon panier</h2>
+
+    <div id="cartItems"></div>
+
+    <h3 id="cartTotal">Total : 0 FCFA</h3>
+
+    <button
+  type="button"
+  class="btn"
+  id="cartCheckoutBtn"
+  onclick="openCartCheckout()"
+  disabled
+>
+  Passer commande
+</button>
+
+  </div>
+
+</div>
+
+<!-- SUNU SHOP : sÃ©lection du pays pour les prix -->
+<div id="shopCountrySelector" style="padding:12px;text-align:center;">
+  <label for="shopCountry">
+    ðŸŒ Votre pays :
+  </label>
+
+  <select id="shopCountry">
+
+  <optgroup label="ðŸ‡ªðŸ‡º EURO (â‚¬)">
+    <option value="FR">ðŸ‡«ðŸ‡· France</option>
+    <option value="DE">ðŸ‡©ðŸ‡ª Allemagne</option>
+    <option value="BE">ðŸ‡§ðŸ‡ª Belgique</option>
+    <option value="ES">ðŸ‡ªðŸ‡¸ Espagne</option>
+    <option value="IT">ðŸ‡®ðŸ‡¹ Italie</option>
+    <option value="PT">ðŸ‡µðŸ‡¹ Portugal</option>
+    <option value="NL">ðŸ‡³ðŸ‡± Pays-Bas</option>
+    <option value="LU">ðŸ‡±ðŸ‡º Luxembourg</option>
+    <option value="AT">ðŸ‡¦ðŸ‡¹ Autriche</option>
+    <option value="IE">ðŸ‡®ðŸ‡ª Irlande</option>
+    <option value="FI">ðŸ‡«ðŸ‡® Finlande</option>
+    <option value="GR">ðŸ‡¬ðŸ‡· GrÃ¨ce</option>
+    <option value="HR">ðŸ‡­ðŸ‡· Croatie</option>
+    <option value="SI">ðŸ‡¸ðŸ‡® SlovÃ©nie</option>
+    <option value="SK">ðŸ‡¸ðŸ‡° Slovaquie</option>
+    <option value="EE">ðŸ‡ªðŸ‡ª Estonie</option>
+    <option value="LV">ðŸ‡±ðŸ‡» Lettonie</option>
+    <option value="LT">ðŸ‡±ðŸ‡¹ Lituanie</option>
+    <option value="MT">ðŸ‡²ðŸ‡¹ Malte</option>
+    <option value="CY">ðŸ‡¨ðŸ‡¾ Chypre</option>
+    <option value="BG">ðŸ‡§ðŸ‡¬ Bulgarie</option>
+    <option value="AD">ðŸ‡¦ðŸ‡© Andorre</option>
+    <option value="MC">ðŸ‡²ðŸ‡¨ Monaco</option>
+    <option value="SM">ðŸ‡¸ðŸ‡² Saint-Marin</option>
+    <option value="VA">ðŸ‡»ðŸ‡¦ Vatican</option>
+    <option value="ME">ðŸ‡²ðŸ‡ª MontÃ©nÃ©gro</option>
+    <option value="XK">ðŸ‡½ðŸ‡° Kosovo</option>
+  </optgroup>
+
+  <optgroup label="ðŸŒ AFRIQUE DE L'OUEST â€” XOF">
+    <option value="SN">ðŸ‡¸ðŸ‡³ SÃ©nÃ©gal</option>
+    <option value="CI">ðŸ‡¨ðŸ‡® CÃ´te d'Ivoire</option>
+    <option value="ML">ðŸ‡²ðŸ‡± Mali</option>
+    <option value="BF">ðŸ‡§ðŸ‡« Burkina Faso</option>
+    <option value="BJ">ðŸ‡§ðŸ‡¯ BÃ©nin</option>
+    <option value="TG">ðŸ‡¹ðŸ‡¬ Togo</option>
+    <option value="NE">ðŸ‡³ðŸ‡ª Niger</option>
+    <option value="GW">ðŸ‡¬ðŸ‡¼ GuinÃ©e-Bissau</option>
+  </optgroup>
+
+  <optgroup label="ðŸŒ AFRIQUE CENTRALE â€” XAF">
+    <option value="CM">ðŸ‡¨ðŸ‡² Cameroun</option>
+    <option value="GA">ðŸ‡¬ðŸ‡¦ Gabon</option>
+    <option value="CG">ðŸ‡¨ðŸ‡¬ Congo</option>
+    <option value="TD">ðŸ‡¹ðŸ‡© Tchad</option>
+    <option value="CF">ðŸ‡¨ðŸ‡« Centrafrique</option>
+    <option value="GQ">ðŸ‡¬ðŸ‡¶ GuinÃ©e Ã©quatoriale</option>
+  </optgroup>
+
+</select>
+
+</div>
+
+<div id="orderModal" class="modal">
+  <button onclick="closeOrder()" class="back-btn">â¬… Retour au site</button>
+
+  <div class="box">
+    <h2>Informations client</h2>
+    <p id="selectedText"></p>
+
+    <form id="orderForm">
+      <div style="margin:15px 0;text-align:left;">
+        <p><strong>Choisissez votre moyen de paiement :</strong></p>
+        <label style="display:block;margin:10px 0;">
+          <input type="radio" name="paymentMethod" value="paydunya" checked>
+          PayDunya
+        </label>
+        <label style="display:block;margin:10px 0;">
+          <input type="radio" name="paymentMethod" value="stripe">
+          Carte bancaire (Stripe)
+        </label>
+      </div>
+      <input id="firstName" placeholder="PrÃ©nom" required>
+      <input id="lastName" placeholder="Nom de famille" required>
+      <input id="email" type="email" placeholder="Email" required>
+      <input id="phone" placeholder="TÃ©lÃ©phone (avec indicatif du pays)" required>
+      <label for="country">ðŸŒ Pays de livraison :</label>
+
+<select id="country" required>
+  <option value="">-- Choisissez votre pays --</option>
+
+  <optgroup label="ðŸ‡ªðŸ‡º EURO (â‚¬)">
+    <option value="FR">France</option>
+    <option value="DE">Allemagne</option>
+    <option value="BE">Belgique</option>
+    <option value="ES">Espagne</option>
+    <option value="IT">Italie</option>
+    <option value="PT">Portugal</option>
+    <option value="NL">Pays-Bas</option>
+    <option value="LU">Luxembourg</option>
+    <option value="AT">Autriche</option>
+    <option value="IE">Irlande</option>
+    <option value="FI">Finlande</option>
+    <option value="GR">GrÃ¨ce</option>
+    <option value="HR">Croatie</option>
+    <option value="SI">SlovÃ©nie</option>
+    <option value="SK">Slovaquie</option>
+    <option value="EE">Estonie</option>
+    <option value="LV">Lettonie</option>
+    <option value="LT">Lituanie</option>
+    <option value="MT">Malte</option>
+    <option value="CY">Chypre</option>
+    <option value="BG">Bulgarie</option>
+    <option value="AD">Andorre</option>
+    <option value="MC">Monaco</option>
+    <option value="SM">Saint-Marin</option>
+    <option value="VA">Vatican</option>
+    <option value="ME">MontÃ©nÃ©gro</option>
+    <option value="XK">Kosovo</option>
+  </optgroup>
+
+  <optgroup label="ðŸŒ AFRIQUE DE L'OUEST â€” XOF">
+    <option value="SN">SÃ©nÃ©gal</option>
+    <option value="CI">CÃ´te d'Ivoire</option>
+    <option value="ML">Mali</option>
+    <option value="BF">Burkina Faso</option>
+    <option value="BJ">BÃ©nin</option>
+    <option value="TG">Togo</option>
+    <option value="NE">Niger</option>
+    <option value="GW">GuinÃ©e-Bissau</option>
+  </optgroup>
+
+  <optgroup label="ðŸŒ AFRIQUE CENTRALE â€” XAF">
+    <option value="CM">Cameroun</option>
+    <option value="GA">Gabon</option>
+    <option value="CG">Congo</option>
+    <option value="TD">Tchad</option>
+    <option value="CF">Centrafrique</option>
+    <option value="GQ">GuinÃ©e Ã©quatoriale</option>
+  </optgroup>
+</select>
+      <input id="address" placeholder="Adresse complÃ¨te de livraison" required>
+      <button class="btn" type="submit">Continuer vers paiement</button>
+    </form>
+  </div>
+</div>
+
+<div id="bigImage">
+  <span class="back" onclick="hideImage()">â¬…</span>
+  <img id="bigImagePhoto">
+</div>
+
+<button id="topBtn" onclick="goTop()">â¬†</button>
+
+<script>
+const API_URL = "https://sunushop-test.onrender.com";
+
+// SUNU SHOP : synchronisation des pays
+document.addEventListener("DOMContentLoaded", function () {
+
+  const shopCountry = document.getElementById("shopCountry");
+  const orderCountry = document.getElementById("country");
+
+  if (!shopCountry || !orderCountry) return;
+
+  // Synchroniser le pays du formulaire avec la boutique
+  orderCountry.value = shopCountry.value;
+
+  // Quand le client change de pays sur la boutique
+  shopCountry.addEventListener("change", function () {
+
+    orderCountry.value = shopCountry.value;
+
+    // Actualiser les prix des produits
+    if (typeof searchProducts === "function") {
+  searchProducts();
+}
+
+// Actualiser le prix dans le formulaire de commande
+updateSelectedOrderPrice();
+
+  // Actualiser le prix du produit actuellement ouvert
+if (detailProduct) {
+  const detailPrice = document.getElementById("detailPrice");
+
+  if (detailPrice) {
+    detailPrice.innerText = formatShopPrice(detailProduct.price);
+  }
+}
+
+    // Actualiser le panier
+    if (typeof renderCart === "function") {
+      renderCart();
+    }
+  });
+
+  // Quand le client change de pays dans le formulaire
+  orderCountry.addEventListener("change", function () {
+
+// Synchroniser le pays de la boutique avec celui de la commande
+shopCountry.value = orderCountry.value;
+
+// Actualiser les produits en conservant la recherche
+if (typeof searchProducts === "function") {
+  searchProducts();
+}
+
+// Actualiser le prix dans le formulaire de commande
+updateSelectedOrderPrice();
+
+// Actualiser le 
+// prix du produit actuellement ouvert
+if (detailProduct) {
+  const detailPrice = document.getElementById("detailPrice");
+
+  if (detailPrice) {
+    detailPrice.innerText = formatShopPrice(detailProduct.price);
+  }
+}
+    if (typeof renderCart === "function") {
+      renderCart();
+    }
+  });
+
+});
+
+// SUNU SHOP : devise selon le pays sÃ©lectionnÃ©
+function getCurrencyByCountry(country) {
+
+  const xofCountries = [
+    "SN", "CI", "ML", "BF",
+    "BJ", "TG", "NE", "GW"
+  ];
+
+  const xafCountries = [
+    "CM", "GA", "CG",
+    "TD", "CF", "GQ"
+  ];
+
+  const eurCountries = [
+    "FR", "DE", "BE", "ES", "IT",
+    "PT", "NL", "LU", "AT", "IE",
+    "FI", "GR", "HR", "SI", "SK",
+    "EE", "LV", "LT", "MT", "CY",
+    "BG", "AD", "MC", "SM", "VA",
+    "ME", "XK"
+  ];
+
+  if (xofCountries.includes(country)) {
+    return "xof";
+  }
+
+  if (xafCountries.includes(country)) {
+    return "xaf";
+  }
+
+  if (eurCountries.includes(country)) {
+    return "eur";
+  }
+
+  return null;
+}
+
+// SUNU SHOP : conversion des prix pour l'affichage
+const EURO_TO_CFA = 655.957;
+
+function formatShopPrice(priceXof) {
+
+  const country =
+  document.getElementById("shopCountry")?.value ||
+  document.getElementById("country")?.value ||
+  "SN";
+
+  const currency = getCurrencyByCountry(country);
+
+  if (currency === "eur") {
+    const euros = priceXof / EURO_TO_CFA;
+
+    return euros.toLocaleString("fr-FR", {
+      style: "currency",
+      currency: "EUR"
+    });
+
+  }
+
+  if (currency === "xaf") {
+    return Math.round(priceXof).toLocaleString("fr-FR") + " FCFA (XAF)";
+  }
+
+  return Math.round(priceXof).toLocaleString("fr-FR") + " FCFA (XOF)";
+}
+
+let selectedProduct = null;
+let detailProduct = null;
+
+// Mode de paiement : produit individuel ou panier
+let checkoutMode = "single";
+// ðŸ›’ PANIER DJIBY SHOP
+
+let cart = [];
+
+try {
+  const savedCart = JSON.parse(localStorage.getItem("djibyshop_cart"));
+
+  if (Array.isArray(savedCart)) {
+    cart = savedCart;
+  }
+} catch (error) {
+  cart = [];
+}
+
+// Enregistrer le panier
+function saveCart() {
+  localStorage.setItem("djibyshop_cart", JSON.stringify(cart));
+}
+// ðŸ›’ AUGMENTER OU DIMINUER LA QUANTITÃ‰
+function changeCartQuantity(productId, change) {
+
+  const item = cart.find(p => p.id === productId);
+  const product = products.find(p => p.id === productId);
+
+  if (!item || !product) return;
+
+  const newQuantity = item.quantity + change;
+
+  // Si la quantitÃ© descend Ã  zÃ©ro, supprimer le produit
+  if (newQuantity <= 0) {
+    cart = cart.filter(p => p.id !== productId);
+  } else {
+
+    // EmpÃªcher de dÃ©passer le stock disponible
+    if (newQuantity > product.stock) {
+      alert("Stock insuffisant !");
+      return;
+    }
+
+    item.quantity = newQuantity;
+  }
+
+  saveCart();
+  renderCart();
+}
+
+
+// ðŸ—‘ï¸ SUPPRIMER UN PRODUIT DU PANIER
+function removeFromCart(productId) {
+
+  cart = cart.filter(p => p.id !== productId);
+
+  saveCart();
+  renderCart();
+}
+function openCart() {
+
+  renderCart();
+
+  document.getElementById("cartModal").style.display = "flex";
+
+}
+// ðŸ›’ FERMER LE PANIER
+function closeCart() {
+  document.getElementById("cartModal").style.display = "none";
+}
+// Ouvrir le formulaire pour payer le panier
+function openCartCheckout() {
+
+  if (cart.length === 0) {
+    alert("Votre panier est vide.");
+    return;
+  }
+
+  checkoutMode = "cart";
+
+  // Fermer le panier
+  closeCart();
+
+  // Afficher les informations de la commande
+  document.getElementById("selectedText").innerText =
+    "Commande de " + cart.length + " produit(s)";
+
+  // Ouvrir le formulaire client
+  document.getElementById("orderModal").style.display = "flex";
+}
+// ðŸ›’ AFFICHER LES PRODUITS DU PANIER
+function renderCart() {
+
+  const box = document.getElementById("cartItems");
+  const totalElement = document.getElementById("cartTotal");
+
+  box.innerHTML = "";
+
+  let total = 0;
+
+  cart.forEach(item => {
+
+    const product = products.find(p => p.id === item.id);
+
+    if (!product) return;
+
+    const quantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
+
+    const subtotal = product.price * quantity;
+
+    total += subtotal;
+
+    const div = document.createElement("div");
+
+    div.style.cssText = `
+      padding:12px;
+      margin-bottom:10px;
+      border:1px solid #ddd;
+      border-radius:10px;
+      background:white;
+      color:black;
+    `;
+
+    const name = document.createElement("strong");
+    name.textContent = product.name;
+
+    const details = document.createElement("p");
+    details.textContent =
+      `${quantity} Ã— ${formatShopPrice(product.price)} = ${formatShopPrice(subtotal)}`;
+
+      // Afficher le nom et le prix
+div.appendChild(name);
+div.appendChild(details);
+
+// Conteneur des boutons
+const actions = document.createElement("div");
+
+actions.style.cssText = `
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+`;
+
+// âž– DIMINUER
+const minusBtn = document.createElement("button");
+minusBtn.textContent = "âž–";
+minusBtn.type = "button";
+
+minusBtn.onclick = function() {
+  changeCartQuantity(product.id, -1);
+};
+
+// AFFICHER LA QUANTITÃ‰
+const quantityText = document.createElement("span");
+quantityText.textContent = quantity;
+
+// âž• AUGMENTER
+const plusBtn = document.createElement("button");
+plusBtn.textContent = "âž•";
+plusBtn.type = "button";
+
+plusBtn.onclick = function() {
+  changeCartQuantity(product.id, 1);
+};
+
+// ðŸ—‘ï¸ SUPPRIMER
+const deleteBtn = document.createElement("button");
+deleteBtn.textContent = "ðŸ—‘ï¸";
+deleteBtn.type = "button";
+
+deleteBtn.onclick = function() {
+  removeFromCart(product.id);
+};
+
+// Ajouter les boutons
+actions.appendChild(minusBtn);
+actions.appendChild(quantityText);
+actions.appendChild(plusBtn);
+actions.appendChild(deleteBtn);
+
+// Ajouter les Ã©lÃ©ments Ã  la fiche
+div.appendChild(actions);
+box.appendChild(div);
+
+  });
+
+totalElement.textContent = `Total : ${formatShopPrice(total)}`;
+
+// Activer le paiement uniquement si le panier contient des produits
+const checkoutBtn = document.getElementById("cartCheckoutBtn");
+
+checkoutBtn.disabled = box.children.length === 0;
+
+if (box.children.length === 0) {
+  box.textContent = "Votre panier est vide.";
+}
+}
+// ðŸ›’ AJOUTER UN PRODUIT AU PANIER
+function addToCart(productId) {
+
+  const product = products.find(p => p.id === productId);
+
+  if (!product) {
+    alert("Produit introuvable");
+    return;
+  }
+
+  if (product.stock <= 0) {
+    alert("Ce produit est indisponible");
+    return;
+  }
+
+  const existingItem = cart.find(item => item.id === productId);
+
+  const currentQuantity = existingItem ? existingItem.quantity : 0;
+
+  if (currentQuantity >= product.stock) {
+    alert("Stock insuffisant");
+    return;
+  }
+
+  if (existingItem) {
+    existingItem.quantity++;
+  } else {
+    cart.push({
+      id: product.id,
+      quantity: 1
+    });
+  }
+
+  saveCart();
+
+  alert("ðŸ›’ Produit ajoutÃ© au panier !");
+}
+let detailIndex = 0;
+
+const products = [
+{ id:1, name:"Produit 1", price:6600, stock:5, images:["gf.jpeg","gd.jpeg","gh.jpeg"], current:0, description:"â€¢ Bonne qualitÃ©<br>â€¢ Livraison gratuit<br>Nouvelle robe plissÃ©e Ã©lÃ©gante et tendance pour femmes, col en V, idÃ©ale pour les trajets quotidiens au printemps/automne" },
+{ id:2, name:"Produit 2", price:5500, stock:10, images:["pe.jpeg","pg.jpeg","pd.jpeg"], current:0, description:"â€¢ Produit vÃ©rifiÃ©<br>â€¢ Disponible<br>.Brosse Ã  cheveux Ã©lectrique 2-en-1 pour lisser et boucler, utilisation sur cheveux secs ou humides, un outil de coiffure polyvalent" },
+{ id:3, name:"Produit 3", price:7800, stock:8, images:["se.jpeg","sr.jpeg","st.jpeg"], current:0, description:"â€¢ Haute qualitÃ©<br>â€¢ Livraison partout au senegal<br>Mini Sac BandouliÃ¨re CarrÃ© Ã  Fermeture Ã‰clair avec ChaÃ®ne DorÃ©e - Ã‰lÃ©gant, Beige et Marron, IdÃ©al pour le Travail, le Bureau, les FÃªtes et les Voyages, Sac de Bureau|Sac Ã  ChaÃ®ne|Fermeture Ã‰clair" },
+{ id:4, name:"Produit 4", price:7900, stock:12, images:["ro.jpeg","rb.jpeg","re.jpeg"], current:0, description:"â€¢ Nouveau modÃ¨le<br>â€¢ Disponible maintenant<br>Robe de mariÃ©e pour femme, Ã©lÃ©gante et raffinÃ©e, imprimÃ© floral, design Ã  une Ã©paule, taille cintrÃ©e, coupe trapÃ¨ze longue, tenue de fÃªte tendance" },
+{ id:5, name:"Produit 5", price:7000, stock:6, images:["p5-1.jpeg","p5-2.jpeg","p5-3.jpeg"], current:0, description:"â€¢ Bonne finition<br>â€¢ Produit populaire" },
+{ id:6, name:"Produit 6", price:7500, stock:9, images:["p6-1.jpeg","p6-2.jpeg","p6-3.jpeg"], current:0, description:"â€¢ TrÃ¨s bonne qualitÃ©<br>â€¢ Livraison disponible" },
+{ id:7, name:"Produit 7", price:8000, stock:7, images:["p7-1.jpeg","p7-2.jpeg","p7-3.jpeg"], current:0, description:"â€¢ Design moderne<br>â€¢ Disponible" },
+{ id:8, name:"Produit 8", price:8500, stock:11, images:["p8-1.jpeg","p8-2.jpeg","p8-3.jpeg"], current:0, description:"â€¢ Produit vÃ©rifiÃ©<br>â€¢ QualitÃ© premium" },
+{ id:9, name:"Produit 9", price:9000, stock:5, images:["p9-1.jpeg","p9-2.jpeg","p9-3.jpeg"], current:0, description:"â€¢ Livraison SÃ©nÃ©gal<br>â€¢ Bon Ã©tat" },
+{ id:10, name:"Produit 10", price:9500, stock:15, images:["p10-1.jpeg","p10-2.jpeg","p10-3.jpeg"], current:0, description:"â€¢ Produit populaire<br>â€¢ Disponible" },
+{ id:11, name:"Produit 11", price:10000, stock:4, images:["p11-1.jpeg","p11-2.jpeg","p11-3.jpeg"], current:0, description:"â€¢ Bonne qualitÃ©<br>â€¢ Livraison rapide" },
+{ id:12, name:"Produit 12", price:10500, stock:6, images:["p12-1.jpeg","p12-2.jpeg","p12-3.jpeg"], current:0, description:"â€¢ Produit original<br>â€¢ Disponible" },
+{ id:13, name:"Produit 13", price:11000, stock:8, images:["p13-1.jpeg","p13-2.jpeg","p13-3.jpeg"], current:0, description:"â€¢ TrÃ¨s demandÃ©<br>â€¢ Haute qualitÃ©" },
+{ id:14, name:"Produit 14", price:11500, stock:10, images:["p14-1.jpeg","p14-2.jpeg","p14-3.jpeg"], current:0, description:"â€¢ Design Ã©lÃ©gant<br>â€¢ Livraison possible" },
+{ id:15, name:"Produit 15", price:12000, stock:5, images:["p15-1.jpeg","p15-2.jpeg","p15-3.jpeg"], current:0, description:"â€¢ Produit neuf<br>â€¢ Disponible maintenant" },
+{ id:16, name:"Produit 16", price:12500, stock:6, images:["p16-1.jpeg","p16-2.jpeg","p16-3.jpeg"], current:0, description:"â€¢ Bonne finition<br>â€¢ Produit vÃ©rifiÃ©" },
+{ id:17, name:"Produit 17", price:13000, stock:7, images:["p17-1.jpeg","p17-2.jpeg","p17-3.jpeg"], current:0, description:"â€¢ QualitÃ© premium<br>â€¢ Disponible" },
+{ id:18, name:"Produit 18", price:13500, stock:8, images:["p18-1.jpeg","p18-2.jpeg","p18-3.jpeg"], current:0, description:"â€¢ Livraison rapide<br>â€¢ Bon produit" },
+{ id:19, name:"Produit 19", price:14000, stock:9, images:["p19-1.jpeg","p19-2.jpeg","p19-3.jpeg"], current:0, description:"â€¢ TrÃ¨s bonne qualitÃ©<br>â€¢ Disponible" },
+{ id:20, name:"Produit 20", price:14500, stock:10, images:["p20-1.jpeg","p20-2.jpeg","p20-3.jpeg"], current:0, description:"â€¢ Produit tendance<br>â€¢ Livraison SÃ©nÃ©gal" },
+{ id:21, name:"Produit 21", price:15000, stock:5, images:["p21-1.jpeg","p21-2.jpeg","p21-3.jpeg"], current:0, description:"â€¢ Produit premium<br>â€¢ Disponible" },
+{ id:22, name:"Produit 22", price:15500, stock:6, images:["p22-1.jpeg","p22-2.jpeg","p22-3.jpeg"], current:0, description:"â€¢ Design moderne<br>â€¢ Haute qualitÃ©" },
+{ id:23, name:"Produit 23", price:16000, stock:7, images:["p23-1.jpeg","p23-2.jpeg","p23-3.jpeg"], current:0, description:"â€¢ Produit neuf<br>â€¢ Disponible" },
+{ id:24, name:"Produit 24", price:16500, stock:8, images:["p24-1.jpeg","p24-2.jpeg","p24-3.jpeg"], current:0, description:"â€¢ Livraison rapide<br>â€¢ Produit vÃ©rifiÃ©" },
+{ id:25, name:"Produit 25", price:17000, stock:9, images:["p25-1.jpeg","p25-2.jpeg","p25-3.jpeg"], current:0, description:"â€¢ TrÃ¨s populaire<br>â€¢ Disponible" },
+{ id:26, name:"Produit 26", price:17500, stock:10, images:["p26-1.jpeg","p26-2.jpeg","p26-3.jpeg"], current:0, description:"â€¢ Bonne qualitÃ©<br>â€¢ Livraison SÃ©nÃ©gal" },
+{ id:27, name:"Produit 27", price:18000, stock:5, images:["p27-1.jpeg","p27-2.jpeg","p27-3.jpeg"], current:0, description:"â€¢ Produit premium<br>â€¢ Disponible maintenant" }
+];
+
+function checkRobot(){
+  if(document.getElementById("robotAnswer").value == "7"){
+    document.getElementById("robot").style.display = "none";
+    localStorage.setItem("robot_ok", "true");
+    localStorage.setItem("robot_time", Date.now());
+  }else{
+    document.getElementById("robotError").innerText = "RÃ©ponse incorrecte";
+  }
+}
+
+window.onload = function(){
+  const ok = localStorage.getItem("robot_ok");
+  const time = localStorage.getItem("robot_time");
+
+  if(ok === "true" && time){
+    const now = Date.now();
+    if(now - time < 86400000){
+      document.getElementById("robot").style.display = "none";
+    }
+  }
+}
+
+function renderProducts(list){
+  const box = document.getElementById("products");
+  box.innerHTML = "";
+
+  list.forEach(p=>{
+    box.innerHTML += `
+      <div class="card simple-card" onclick="showProductDetails(${p.id})">
+        <img class="product-main-img" src="${p.images[0]}">
+        <div class="simple-price">${formatShopPrice(p.price)}</div>
+      </div>`;
+  });
+}
+
+function searchProducts(){
+
+  const text =
+  document.getElementById("searchInput").value.toLowerCase();
+
+  renderProducts(
+
+    products.filter(p =>
+
+      p.name.toLowerCase().includes(text)
+
+      ||
+
+      p.description.toLowerCase().includes(text)
+
+    )
+
+  );
+
+}
+
+function showProductDetails(id){
+  detailProduct = products.find(item => item.id === id);
+  detailIndex = 0;
+
+  document.getElementById("detailMainImage").src = detailProduct.images[detailIndex];
+  document.getElementById("detailName").innerText = detailProduct.name;
+  document.getElementById("detailPrice").innerText =
+  formatShopPrice(detailProduct.price);
+  document.getElementById("detailDescription").innerHTML = detailProduct.description;
+  document.getElementById("detailStock").innerText = "Produit restant : " + detailProduct.stock;
+
+  const btn = document.getElementById("detailPayBtn");
+
+  if(detailProduct.stock <= 0){
+    btn.innerText = "Produit indisponible";
+    btn.className = "btn out";
+    btn.onclick = function(){
+      alert("Ce produit est indisponible");
+    };
+  }else{
+    btn.innerText = "Payer ce produit";
+    btn.className = "btn";
+    btn.onclick = function(){
+      closeProductDetails();
+      openOrder(detailProduct.id);
+    };
+  }
+
+  document.getElementById("productDetail").style.display = "flex";
+}
+
+function changeDetailImage(direction){
+  if(!detailProduct) return;
+
+  detailIndex = detailIndex + direction;
+
+  if(detailIndex < 0){
+    detailIndex = detailProduct.images.length - 1;
+  }
+
+  if(detailIndex >= detailProduct.images.length){
+    detailIndex = 0;
+  }
+
+  document.getElementById("detailMainImage").src = detailProduct.images[detailIndex];
+}
+
+function closeProductDetails(){
+  document.getElementById("productDetail").style.display = "none";
+}
+
+function updateSelectedOrderPrice() {
+
+  if (checkoutMode === "single" && selectedProduct) {
+
+    document.getElementById("selectedText").innerText =
+      selectedProduct.name + " - " +
+      formatShopPrice(selectedProduct.price);
+
+  }
+
+}
+
+function openOrder(id){
+
+    checkoutMode = "single";
+
+  selectedProduct = products.find(p => p.id === id);
+
+document.getElementById("selectedText").innerText =
+  selectedProduct.name + " - " + formatShopPrice(selectedProduct.price);
+
+  document.getElementById("orderModal").style.display = "flex";
+}
+
+function closeOrder(){
+  document.getElementById("orderModal").style.display = "none";
+}
+
+document.getElementById("orderForm").addEventListener("submit", function(e){
+  e.preventDefault();
+
+const customer = {
+  firstName: document.getElementById("firstName").value.trim(),
+  lastName: document.getElementById("lastName").value.trim(),
+  email: document.getElementById("email").value.trim(),
+  phone: document.getElementById("phone").value.trim(),
+  country: document.getElementById("country").value,
+  address: document.getElementById("address").value.trim()
+};
+  // Choisir le paiement individuel ou le paiement du panier
+const paymentMethod = document.querySelector(
+  'input[name="paymentMethod"]:checked'
+)?.value;
+
+const paymentEndpoint = paymentMethod === "stripe"
+  ? "/create-stripe-payment"
+  : checkoutMode === "cart"
+    ? "/create-cart-payment"
+    : "/create-payment";
+
+const paymentData = paymentMethod === "stripe"
+  ? {
+      customer: customer,
+      items: checkoutMode === "cart"
+        ? cart.map(item => ({
+            id: item.id,
+            quantity: item.quantity
+          }))
+        : [{
+            id: selectedProduct.id,
+            quantity: 1
+          }]
+    }
+  : checkoutMode === "cart"
+    ? {
+        customer: customer,
+        items: cart.map(item => ({
+          id: item.id,
+          quantity: item.quantity
+        }))
+      }
+    : {
+        product: selectedProduct,
+        customer: customer
+      };
+
+  fetch(API_URL + paymentEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(paymentData)
+
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.success){
+      window.location.href = data.payment_url;
+    }else{
+      alert(data.message || "Produit indisponible");
+    }
+  })
+  .catch(() => alert("Backend non connectÃ©"));
+});
+
+function hideImage(){
+  document.getElementById("bigImage").style.display = "none";
+}
+
+function goTop(){
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+renderProducts(products);
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(function() {
+        console.log("Service worker OK");
+      })
+      .catch(function(error) {
+        console.log("Service worker erreur:", error);
+      });
+  });
+}
+</script>
+
+
+
+</body>
+</html>

@@ -114,7 +114,28 @@ small{color:#566174}
     🔄 Actualiser les commandes
   </button>
 
-  <div id="ordersList" style="margin-top:20px;">
+  <button id="createTestOrderBtn" type="button">
+    🧪 Créer une commande de test
+  </button>
+
+    <div id="testOrdersSection" style="margin-top:25px; padding:15px; border:2px dashed #eab308; border-radius:10px;">
+
+    <h3>🧪 Commandes de test</h3>
+
+    <p>
+      Simulation uniquement : aucun paiement et aucune modification du stock.
+    </p>
+
+    <button id="refreshTestOrdersBtn" type="button">
+      🔄 Actualiser les tests
+    </button>
+
+    <div id="testOrdersList" style="margin-top:15px;">
+      Aucune simulation chargée.
+    </div>
+
+  </div>
+<div id="ordersList" style="margin-top:20px;">
     Cliquez sur Actualiser les commandes.
   </div>
 </section>
@@ -703,6 +724,219 @@ async function loadOrders() {
   }
 }
 
+$("createTestOrderBtn").addEventListener("click", async () => {
+  const bouton = $("createTestOrderBtn");
+
+  if (!confirm("Créer une commande fictive pour tester la livraison ?")) {
+    return;
+  }
+
+  bouton.disabled = true;
+  clearMessage();
+
+  try {
+    const data = await request("/admin/test-orders", {
+      method: "POST"
+    });
+
+    if (!data.success) {
+      throw new Error(data.message || "Création impossible");
+    }
+
+    showMessage("Commande fictive créée avec succès.");
+
+    await loadTestOrders();
+
+  } catch (error) {
+    showMessage(error.message, true);
+  } finally {
+    bouton.disabled = false;
+  }
+});
+async function loadTestOrders() {
+  const liste = $("testOrdersList");
+
+  liste.textContent = "Chargement des commandes fictives...";
+
+  try {
+    const data = await request("/admin/test-orders");
+    const commandes = Array.isArray(data.orders) ? data.orders : [];
+
+    liste.replaceChildren();
+
+    if (commandes.length === 0) {
+      liste.textContent = "Aucune commande de test.";
+      return;
+    }
+
+    const statuts = {
+      pending: "🟡 En attente",
+      preparing: "📦 En préparation",
+      shipped: "🚚 Expédiée",
+      delivered: "✅ Livrée"
+    };
+
+    for (const commande of commandes) {
+      const carte = document.createElement("div");
+
+      carte.style.cssText =
+        "padding:15px;margin:12px 0;border:1px solid #ddd;border-radius:8px;";
+
+      const titre = document.createElement("h4");
+      titre.textContent = "🧪 TEST — Commande n°" + commande.id;
+
+      const statut = document.createElement("p");
+      statut.textContent =
+        "Statut : " +
+        (statuts[commande.fulfillment_status] || "Inconnu");
+
+      carte.append(titre, statut);
+
+      if (commande.shipping_carrier) {
+        const transporteur = document.createElement("p");
+        transporteur.textContent =
+          "Transporteur : " + commande.shipping_carrier;
+
+        carte.appendChild(transporteur);
+      }
+
+      if (commande.tracking_number) {
+        const suivi = document.createElement("p");
+        suivi.textContent =
+          "Numéro de suivi : " + commande.tracking_number;
+
+        carte.appendChild(suivi);
+      }
+
+      const actions = {
+        pending: ["📦 Commencer la préparation", "preparing"],
+        preparing: ["🚚 Expédier", "shipped"],
+        shipped: ["✅ Confirmer la livraison", "delivered"]
+      };
+
+      const action = actions[commande.fulfillment_status];
+
+      if (action) {
+        const bouton = document.createElement("button");
+        bouton.type = "button";
+        bouton.textContent = action[0];
+
+        bouton.addEventListener("click", async () => {
+          const nouveauStatut = action[1];
+
+          const informations = {
+            fulfillment_status: nouveauStatut
+          };
+
+          if (nouveauStatut === "shipped") {
+            const transporteur = prompt("Nom du transporteur :");
+
+            if (transporteur === null) return;
+
+            if (!transporteur.trim()) {
+              alert("Le transporteur est obligatoire.");
+              return;
+            }
+
+            const numero = prompt("Numéro de suivi :");
+
+            if (numero === null) return;
+
+            if (!numero.trim()) {
+              alert("Le numéro de suivi est obligatoire.");
+              return;
+            }
+
+            const lien = prompt(
+              "Lien de suivi (facultatif) :",
+              ""
+            );
+
+            if (lien === null) return;
+
+            informations.shipping_carrier = transporteur.trim();
+            informations.tracking_number = numero.trim();
+            informations.tracking_url = lien.trim();
+          }
+
+          if (!confirm("Confirmer cette étape de livraison fictive ?")) {
+            return;
+          }
+
+          bouton.disabled = true;
+
+          try {
+            await request(
+              "/admin/test-orders/" +
+              encodeURIComponent(commande.id) +
+              "/fulfillment",
+              {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify(informations)
+              }
+            );
+
+            await loadTestOrders();
+
+          } catch (error) {
+            alert("Erreur : " + error.message);
+            bouton.disabled = false;
+          }
+        });
+
+        carte.appendChild(bouton);
+      }
+
+      // Supprimer uniquement une commande fictive
+      const supprimerTest = document.createElement("button");
+
+      supprimerTest.type = "button";
+      supprimerTest.textContent = "🗑️ Supprimer le test";
+      supprimerTest.style.marginLeft = "10px";
+
+      supprimerTest.addEventListener("click", async () => {
+        if (!confirm(
+          "Supprimer définitivement la commande fictive n°" +
+          commande.id + " ?"
+        )) {
+          return;
+        }
+
+        supprimerTest.disabled = true;
+
+        try {
+          await request(
+            "/admin/test-orders/" + encodeURIComponent(commande.id),
+            {
+              method: "DELETE"
+            }
+          );
+
+          showMessage("Commande fictive supprimée.");
+
+          await loadTestOrders();
+
+        } catch (error) {
+          alert("Erreur : " + error.message);
+          supprimerTest.disabled = false;
+        }
+      });
+
+      carte.appendChild(supprimerTest);
+
+      liste.appendChild(carte);
+    }
+
+  } catch (error) {
+    liste.textContent =
+      "Erreur de chargement : " + error.message;
+  }
+}
+
+$("refreshTestOrdersBtn").addEventListener("click", loadTestOrders);
 $("refreshOrdersBtn").addEventListener("click", loadOrders);
 $("refreshBtn").addEventListener("click", async () => {
   clearMessage();

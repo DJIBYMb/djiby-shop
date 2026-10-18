@@ -257,6 +257,20 @@ for (const champ of champsSuivi) {
     console.log("Colonne de suivi ajoutée :", champ);
   }
 }
+// =====================================
+// COMMANDES FICTIVES - TESTS ADMIN
+// =====================================
+db.exec(`
+  CREATE TABLE IF NOT EXISTS test_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fulfillment_status TEXT NOT NULL DEFAULT 'pending',
+    shipping_carrier TEXT,
+    tracking_number TEXT,
+    tracking_url TEXT,
+    shipped_at INTEGER,
+    created_at INTEGER NOT NULL
+  );
+`);
 const clean = product => ({
   ...product,
   images: JSON.parse(product.images)
@@ -737,6 +751,239 @@ app.patch("/admin/orders/:id/fulfillment", admin, (req, res) => {
     res.status(500).json({
       success: false,
       message: "Impossible de modifier la livraison"
+    });
+  }
+});
+// =====================================
+// CREATION DES COMMANDES DE TEST
+// =====================================
+app.post("/admin/test-orders", admin, (req, res) => {
+  try {
+    const resultat = db.prepare(`
+      INSERT INTO test_orders (
+        fulfillment_status,
+        created_at
+      )
+      VALUES ('pending', ?)
+    `).run(Date.now());
+
+    res.status(201).json({
+      success: true,
+      message: "Commande de test créée",
+      order: {
+        id: resultat.lastInsertRowid,
+        fulfillment_status: "pending",
+        is_test: true
+      }
+    });
+
+  } catch (error) {
+    console.error("Erreur création commande test:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Impossible de créer la commande de test"
+    });
+  }
+});
+// =====================================
+// LISTE DES COMMANDES FICTIVES
+// =====================================
+app.get("/admin/test-orders", admin, (req, res) => {
+  try {
+    const commandes = db.prepare(`
+      SELECT
+        id,
+        fulfillment_status,
+        shipping_carrier,
+        tracking_number,
+        tracking_url,
+        shipped_at,
+        created_at
+      FROM test_orders
+      ORDER BY id DESC
+      LIMIT 50
+    `).all();
+
+    res.json({
+      success: true,
+      orders: commandes.map(commande => ({
+        ...commande,
+        is_test: true
+      }))
+    });
+
+  } catch (error) {
+    console.error("Erreur liste commandes test:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Impossible de charger les commandes de test"
+    });
+  }
+});
+// =====================================
+// LIVRAISONS DES COMMANDES FICTIVES
+// =====================================
+app.patch("/admin/test-orders/:id/fulfillment", admin, (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const nouveauStatut = req.body?.fulfillment_status;
+
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Identifiant de test invalide"
+      });
+    }
+
+    const transitions = {
+      pending: "preparing",
+      preparing: "shipped",
+      shipped: "delivered"
+    };
+
+    const commande = db.prepare(`
+      SELECT id, fulfillment_status
+      FROM test_orders
+      WHERE id = ?
+    `).get(id);
+
+    if (!commande) {
+      return res.status(404).json({
+        success: false,
+        message: "Commande de test introuvable"
+      });
+    }
+
+    if (transitions[commande.fulfillment_status] !== nouveauStatut) {
+      return res.status(409).json({
+        success: false,
+        message: "Transition de livraison non autorisée"
+      });
+    }
+
+    let resultat;
+
+    if (nouveauStatut === "shipped") {
+      const carrier = req.body?.shipping_carrier;
+      const tracking = req.body?.tracking_number;
+      const url = req.body?.tracking_url ?? "";
+
+      if (
+        typeof carrier !== "string" ||
+        typeof tracking !== "string" ||
+        typeof url !== "string" ||
+        !carrier.trim() ||
+        !tracking.trim() ||
+        carrier.trim().length > 100 ||
+        tracking.trim().length > 150 ||
+        url.length > 500
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Informations de suivi invalides"
+        });
+      }
+
+      if (url.trim()) {
+        try {
+          const lien = new URL(url.trim());
+          if (!["https:", "http:"].includes(lien.protocol)) {
+            throw new Error("Protocole interdit");
+          }
+        } catch {
+          return res.status(400).json({
+            success: false,
+            message: "Lien de suivi invalide"
+          });
+        }
+      }
+
+      resultat = db.prepare(`
+        UPDATE test_orders
+        SET fulfillment_status = 'shipped',
+            shipping_carrier = ?,
+            tracking_number = ?,
+            tracking_url = ?,
+            shipped_at = ?
+        WHERE id = ?
+          AND fulfillment_status = 'preparing'
+      `).run(
+        carrier.trim(),
+        tracking.trim(),
+        url.trim(),
+        Date.now(),
+        id
+      );
+
+    } else {
+      resultat = db.prepare(`
+        UPDATE test_orders
+        SET fulfillment_status = ?
+        WHERE id = ?
+          AND fulfillment_status = ?
+      `).run(nouveauStatut, id, commande.fulfillment_status);
+    }
+
+    if (resultat.changes !== 1) {
+      return res.status(409).json({
+        success: false,
+        message: "La commande de test a changé. Actualisez."
+      });
+    }
+
+    res.json({
+      success: true,
+      fulfillment_status: nouveauStatut
+    });
+
+  } catch (error) {
+    console.error("Erreur livraison test:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Impossible de modifier la commande de test"
+    });
+  }
+});
+// =====================================
+// SUPPRESSION DES COMMANDES FICTIVES
+// =====================================
+app.delete("/admin/test-orders/:id", admin, (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Identifiant de test invalide"
+      });
+    }
+
+    const resultat = db.prepare(`
+      DELETE FROM test_orders
+      WHERE id = ?
+    `).run(id);
+
+    if (resultat.changes === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Commande fictive introuvable"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Commande fictive supprimée"
+    });
+
+  } catch (error) {
+    console.error("Erreur suppression commande test:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Impossible de supprimer la commande fictive"
     });
   }
 });

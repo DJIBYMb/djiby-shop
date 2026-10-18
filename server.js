@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const paydunya = require("paydunya");
@@ -50,7 +50,8 @@ app.use(cors({
 // Stripe exige le corps brut pour verifier la signature du webhook.
 // Cette route doit etre declaree AVANT express.json().
 app.post("/stripe-webhook", express.raw({ type: "application/json" }), (req, res) => {
-  if (process.env.STRIPE_PAYMENTS_ENABLED !== "true") {
+  if (process.env.STRIPE_PAYMENTS_ENABLED !== "true" &&
+      process.env.STRIPE_TEST_MODE !== "true") {
     return res.status(503).send("Stripe temporairement desactive");
   }
   if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
@@ -1044,13 +1045,31 @@ app.get("/stripe-payment-status", async (req, res) => {
   }
 });
 
-app.post("/create-stripe-payment", async (req, res) => {
+// Route publique : reste bloquee tant que Stripe n'est pas ouvert aux clients.
+app.post("/create-stripe-payment", (req, res) => {
   if (process.env.STRIPE_PAYMENTS_ENABLED !== "true") {
     return res.status(503).json({
       success: false,
       message: "Paiement Stripe temporairement indisponible"
     });
   }
+  return createStripePayment(req, res);
+});
+
+// Route de verification reservee a l'administrateur.
+// STRIPE_TEST_MODE=true autorise cette route et les webhooks,
+// mais N'ACTIVE PAS le paiement Stripe pour les visiteurs.
+app.post("/admin/create-stripe-test-payment", admin, (req, res) => {
+  if (process.env.STRIPE_TEST_MODE !== "true") {
+    return res.status(503).json({ success: false, message: "Test Stripe desactive" });
+  }
+  if (process.env.STRIPE_PAYMENTS_ENABLED === "true") {
+    return res.status(409).json({ success: false, message: "Stripe public deja actif" });
+  }
+  return createStripePayment(req, res);
+});
+
+async function createStripePayment(req, res) {
   if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
     return res.status(503).json({ success: false, message: "Stripe non configure" });
   }
@@ -1138,7 +1157,7 @@ app.post("/create-stripe-payment", async (req, res) => {
     console.error("Erreur creation Stripe:", error);
     return res.status(500).json({ success: false, message: "Paiement Stripe indisponible" });
   }
-});
+}
 
 // =====================================
 // CONFIRMATION DES PAIEMENTS PAYDUNYA

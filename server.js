@@ -13,6 +13,8 @@ const path = require("path");
 dotenv.config();
 
 const app = express();
+const PAYDUNYA_ENABLED =
+  process.env.PAYDUNYA_ENABLED === "true";
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 app.disable("x-powered-by");
@@ -22,14 +24,21 @@ const SITE_ORIGIN = SITE_URL ? new URL(SITE_URL).origin : "";
 
 if (
   !SITE_URL ||
-  !process.env.ADMIN_PASSWORD_HASH ||
-  !process.env.PAYDUNYA_MASTER_KEY
+  !process.env.ADMIN_PASSWORD_HASH
 ) {
   throw new Error(
-    "Configurer SITE_URL, ADMIN_PASSWORD_HASH et les variables PAYDUNYA"
+    "Configurer SITE_URL et ADMIN_PASSWORD_HASH"
   );
 }
 
+if (
+  process.env.STRIPE_PAYMENTS_ENABLED === "true" &&
+  !process.env.STRIPE_SECRET_KEY
+) {
+  throw new Error(
+    "Configurer STRIPE_SECRET_KEY pour activer Stripe"
+  );
+}
 app.use(cors({
   origin(origin, callback) {
 
@@ -1235,29 +1244,55 @@ app.delete("/admin/products/:id", admin, (req, res) => {
 // CONFIGURATION PAYDUNYA
 // =====================================
 
-const setup = new paydunya.Setup({
+let setup = null;
+let store = null;
 
-  masterKey: process.env.PAYDUNYA_MASTER_KEY,
-  privateKey: process.env.PAYDUNYA_PRIVATE_KEY,
-  publicKey: process.env.PAYDUNYA_PUBLIC_KEY,
-  token: process.env.PAYDUNYA_TOKEN,
+if (PAYDUNYA_ENABLED) {
 
-  mode: process.env.PAYDUNYA_MODE || "test"
-});
+  const requiredKeys = [
+    "PAYDUNYA_MASTER_KEY",
+    "PAYDUNYA_PRIVATE_KEY",
+    "PAYDUNYA_PUBLIC_KEY",
+    "PAYDUNYA_TOKEN"
+  ];
 
-const store = new paydunya.Store({
+  const missingKeys = requiredKeys.filter(
+    key => !process.env[key]
+  );
 
-  name: "DJIBY SHOP",
-  tagline: "Produits de qualité",
-  phoneNumber: "33745098191",
-  websiteURL: SITE_URL
-});
+  if (missingKeys.length > 0) {
+    throw new Error(
+      "Configuration PayDunya incomplète"
+    );
+  }
 
+  setup = new paydunya.Setup({
+    masterKey: process.env.PAYDUNYA_MASTER_KEY,
+    privateKey: process.env.PAYDUNYA_PRIVATE_KEY,
+    publicKey: process.env.PAYDUNYA_PUBLIC_KEY,
+    token: process.env.PAYDUNYA_TOKEN,
+    mode: process.env.PAYDUNYA_MODE || "test"
+  });
+
+  store = new paydunya.Store({
+    name: "DJIBY SHOP",
+    tagline: "Produits de qualité",
+    phoneNumber: "33745098191",
+    websiteURL: SITE_URL
+  });
+
+}
 // =====================================
 // CRÃ‰ER UN PAIEMENT
 // =====================================
 
 app.post("/create-payment", async (req, res) => {
+
+    if (!PAYDUNYA_ENABLED) {
+    return res.status(503).json({
+      error: "PayDunya désactivé sur ce serveur"
+    });
+  }
 
   try {
 
@@ -1369,6 +1404,12 @@ app.post("/create-payment", async (req, res) => {
 // =====================================
 
 app.post("/create-cart-payment", async (req, res) => {
+
+    if (!PAYDUNYA_ENABLED) {
+    return res.status(503).json({
+      error: "PayDunya désactivé sur ce serveur"
+    });
+  }
   try {
     const items = req.body?.items;
     const customer = req.body?.customer;
@@ -1775,6 +1816,12 @@ if (
 // =====================================
 
 app.post("/ipn", async function(req, res) {
+
+    if (!PAYDUNYA_ENABLED) {
+    return res.status(503).json({
+      error: "PayDunya désactivé sur ce serveur"
+    });
+  }
 
   try {
 

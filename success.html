@@ -103,8 +103,27 @@ h1 { color: #176b36; }
     }
   }
 
-  verifyPayment();
+  // Vérifier immédiatement, puis réessayer si nécessaire.
+  let tentatives = 0;
+  const maximumTentatives = 6;
+
+  async function verifierAvecRelance() {
+    await verifyPayment();
+
+    const titre = title.textContent;
+
+    if (
+      tentatives < maximumTentatives - 1 &&
+      titre === "Confirmation du paiement en cours"
+    ) {
+      tentatives++;
+      setTimeout(verifierAvecRelance, 5000);
+    }
+  }
+
+  verifierAvecRelance();
 })();
 </script>
 </body>
 </html>
+

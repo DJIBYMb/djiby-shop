@@ -1595,25 +1595,72 @@ app.get("/stripe-payment-status", async (req, res) => {
   }
 
   try {
-    const order = db.prepare(
-      "SELECT id, status, invoice_token FROM orders WHERE invoice_token = ?"
-    ).get(sessionId);
 
+    const order = db.prepare(
+  "SELECT id, status, invoice_token, customer FROM orders WHERE invoice_token = ?"
+).get(sessionId);
     if (!order) {
       return res.status(404).json({ status: "not_found" });
     }
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    // Récupérer les articles enregistrés dans la commande
+const articles = db.prepare(
+  "SELECT product_id, quantity, unit_price FROM order_items WHERE order_id = ?"
+).all(order.id);
 
-    if (
-      session.id !== order.invoice_token ||
-      session.mode !== "payment" ||
-      session.metadata?.order_id !== String(order.id) ||
-      session.currency !== "eur"
-    ) {
-      return res.status(409).json({ status: "unverified" });
-    }
+if (!articles.length) {
+  return res.status(409).json({ status: "unverified" });
+}
 
+// Recuperer le pays du client enregistre dans la commande
+let customer;
+
+try {
+  customer = JSON.parse(order.customer);
+} catch (error) {
+  return res.status(409).json({ status: "unverified" });
+}
+
+// Determiner la devise autorisee selon le pays
+const expectedCurrency = getStripeCurrencyByCountry(customer?.country);
+
+if (!expectedCurrency) {
+  return res.status(409).json({ status: "unverified" });
+}
+
+// Recalculer le montant depuis les articles enregistres
+const totalXof = articles.reduce(
+  (sum, article) => sum + article.quantity * article.unit_price,
+  0
+);
+
+// EUR : centimes
+// XOF et XAF : unites entieres
+const expectedAmount =
+  expectedCurrency === "eur"
+    ? Math.round(totalXof * 100 / 655.957)
+    : totalXof;
+
+const minimumAmount =
+  expectedCurrency === "eur" ? 50 : 328;
+
+// Recuperer la session directement depuis Stripe
+const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+// Verifier la commande, la devise et le montant
+if (
+  !Number.isSafeInteger(totalXof) ||
+  !Number.isSafeInteger(expectedAmount) ||
+  expectedAmount < minimumAmount ||
+  expectedAmount > 99999999 ||
+  session.id !== order.invoice_token ||
+  session.mode !== "payment" ||
+  session.metadata?.order_id !== String(order.id) ||
+  session.currency !== expectedCurrency ||
+  session.amount_total !== expectedAmount
+) {
+  return res.status(409).json({ status: "unverified" });
+}
     if (session.payment_status !== "paid") {
       return res.json({ status: "pending" });
     }

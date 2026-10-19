@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Administration â€” DJIBY SHOP</title>
+<title>Administration — DJIBY SHOP</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f4f6fa;color:#182334}
@@ -37,14 +37,14 @@ small{color:#566174}
 <body>
 
 <header>
-<h1>ðŸ›ï¸ DJIBY SHOP</h1>
+<h1>🛍️ DJIBY SHOP</h1>
 <p>Espace administrateur</p>
 </header>
 
 <main>
 
 <section id="loginSection" class="card">
-<h2>ðŸ” Connexion administrateur</h2>
+<h2>🔐 Connexion administrateur</h2>
 <form id="loginForm">
 <label for="password">Mot de passe</label>
 <input id="password" type="password" autocomplete="current-password" required>
@@ -56,13 +56,13 @@ small{color:#566174}
 
 <div class="card">
 <div class="actions">
-<button id="refreshBtn" type="button">ðŸ”„ Actualiser les produits</button>
-<button id="logoutBtn" class="secondary" type="button">ðŸšª DÃ©connexion</button>
+<button id="refreshBtn" type="button">🔄 Actualiser les produits</button>
+<button id="logoutBtn" class="secondary" type="button">🚪 Déconnexion</button>
 </div>
 </div>
 
 <section class="card">
-<h2 id="formTitle">âž• Ajouter un produit</h2>
+<h2 id="formTitle">➕ Ajouter un produit</h2>
 
 <form id="productForm">
 
@@ -85,14 +85,14 @@ small{color:#566174}
 
 <label for="photos">Ajouter des photos</label>
 <input id="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
-<small>JPEG, PNG ou WebP â€” 5 Mo maximum par photo. Jusqu'Ã  5 photos par envoi.</small>
+<small>JPEG, PNG ou WebP — 5 Mo maximum par photo. Jusqu'à 5 photos par envoi.</small>
 
 <label for="imageUrls" style="margin-top:15px">Adresses des images</label>
 <textarea id="imageUrls" placeholder="Une adresse par ligne : https://... ou /uploads/..."></textarea>
-<small>Les photos dÃ©jÃ  enregistrÃ©es sont conservÃ©es si tu ne modifies pas ce champ.</small>
+<small>Les photos déjà enregistrées sont conservées si tu ne modifies pas ce champ.</small>
 
 <div class="actions" style="margin-top:15px">
-<button id="saveBtn" type="submit">ðŸ’¾ Enregistrer le produit</button>
+<button id="saveBtn" type="submit">💾 Enregistrer le produit</button>
 <button id="cancelBtn" class="secondary hidden" type="button">Annuler la modification</button>
 </div>
 
@@ -100,38 +100,38 @@ small{color:#566174}
 </section>
 
 <section class="card">
-<h2>ðŸ“¦ Produits enregistrÃ©s</h2>
+<h2>📦 Produits enregistrés</h2>
 <p id="count"></p>
 <div id="products"></div>
 </section>
 
 <section class="card" id="ordersSection">
-  <h2>ðŸ“¦ Commandes clients</h2>
+  <h2>📦 Commandes clients</h2>
 
   <p>Consultez les commandes Stripe et PayDunya.</p>
 
   <button id="refreshOrdersBtn" type="button">
-    ðŸ”„ Actualiser les commandes
+    🔄 Actualiser les commandes
   </button>
 
   <button id="createTestOrderBtn" type="button">
-    ðŸ§ª CrÃ©er une commande de test
+    🧪 Créer une commande de test
   </button>
 
     <div id="testOrdersSection" style="margin-top:25px; padding:15px; border:2px dashed #eab308; border-radius:10px;">
 
-    <h3>ðŸ§ª Commandes de test</h3>
+    <h3>🧪 Commandes de test</h3>
 
     <p>
       Simulation uniquement : aucun paiement et aucune modification du stock.
     </p>
 
     <button id="refreshTestOrdersBtn" type="button">
-      ðŸ”„ Actualiser les tests
+      🔄 Actualiser les tests
     </button>
 
     <div id="testOrdersList" style="margin-top:15px;">
-      Aucune simulation chargÃ©e.
+      Aucune simulation chargée.
     </div>
 
   </div>
@@ -230,7 +230,7 @@ $("loginForm").addEventListener("submit", async event => {
     setLoggedIn(true);
     await loadProducts();
 
-    showMessage("Connexion rÃ©ussie.");
+    showMessage("Connexion réussie.");
   } catch (error) {
     showMessage(error.message, true);
   } finally {
@@ -303,13 +303,13 @@ function renderProducts() {
 
     const edit = document.createElement("button");
     edit.type = "button";
-    edit.textContent = "âœï¸ Modifier";
+    edit.textContent = "✏️ Modifier";
     edit.addEventListener("click", () => editProduct(product));
 
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "danger";
-    remove.textContent = "ðŸ—‘ï¸ Supprimer";
+    remove.textContent = "🗑️ Supprimer";
     remove.addEventListener("click", () => deleteProduct(product));
 
     actions.append(edit, remove);
@@ -322,7 +322,7 @@ function renderProducts() {
 function editProduct(product) {
   editingId = product.id;
 
-  $("formTitle").textContent = "âœï¸ Modifier : " + product.name;
+  $("formTitle").textContent = "✏️ Modifier : " + product.name;
   $("name").value = product.name || "";
   $("price").value = product.price;
   $("stock").value = product.stock;
@@ -353,7 +353,7 @@ function resetForm() {
   editingId = null;
   $("productForm").reset();
   $("imageUrls").value = "";
-  $("formTitle").textContent = "âž• Ajouter un produit";
+  $("formTitle").textContent = "➕ Ajouter un produit";
   $("cancelBtn").classList.add("hidden");
 }
 
@@ -404,7 +404,7 @@ $("productForm").addEventListener("submit", async event => {
       });
 
       if (!Array.isArray(uploaded.images)) {
-        throw new Error("RÃ©ponse de tÃ©lÃ©chargement invalide.");
+        throw new Error("Réponse de téléchargement invalide.");
       }
 
       images.push(...uploaded.images);
@@ -425,7 +425,7 @@ $("productForm").addEventListener("submit", async event => {
       !Number.isSafeInteger(payload.stock) ||
       payload.stock < 0
     ) {
-      throw new Error("VÃ©rifie le nom, le prix et le stock.");
+      throw new Error("Vérifie le nom, le prix et le stock.");
     }
 
     const isEditing = editingId !== null;
@@ -452,8 +452,8 @@ $("productForm").addEventListener("submit", async event => {
 
     showMessage(
       isEditing
-        ? "Produit modifiÃ© avec succÃ¨s."
-        : "Produit ajoutÃ© avec succÃ¨s."
+        ? "Produit modifié avec succès."
+        : "Produit ajouté avec succès."
     );
 
   } catch (error) {
@@ -468,9 +468,9 @@ async function deleteProduct(product) {
   if (busy) return;
 
   const confirmed = confirm(
-    "ATTENTION : supprimer dÃ©finitivement le produit Â« " +
+    "ATTENTION : supprimer définitivement le produit « " +
     product.name +
-    " Â» (ID " + product.id + ") ?"
+    " » (ID " + product.id + ") ?"
   );
 
   if (!confirmed) return;
@@ -489,7 +489,7 @@ async function deleteProduct(product) {
     }
 
     await loadProducts();
-    showMessage("Produit supprimÃ©.");
+    showMessage("Produit supprimé.");
 
   } catch (error) {
     showMessage(error.message, true);
@@ -507,7 +507,7 @@ async function loadOrders() {
     const orders = Array.isArray(data.orders) ? data.orders : [];
 
     if (orders.length === 0) {
-      liste.textContent = "Aucune commande enregistrÃ©e.";
+      liste.textContent = "Aucune commande enregistrée.";
       return;
     }
 
@@ -531,21 +531,21 @@ async function loadOrders() {
       email.textContent = "Email : " + (client.email || "");
 
       const telephone = document.createElement("p");
-      telephone.textContent = "TÃ©lÃ©phone : " + (client.phone || "");
+      telephone.textContent = "Téléphone : " + (client.phone || "");
 
       const adresse = document.createElement("p");
       adresse.textContent = "Adresse : " + (client.address || "");
 
       const paiement = document.createElement("p");
       paiement.textContent =
-        "Paiement : " + (order.payment_provider || "Non prÃ©cisÃ©");
+        "Paiement : " + (order.payment_provider || "Non précisé");
 
       const statut = document.createElement("p");
       statut.textContent = "Statut : " + order.status;
 
       const livraison = document.createElement("p");
       livraison.textContent =
-        "PrÃ©paration : " + (order.fulfillment_status || "pending");
+        "Préparation : " + (order.fulfillment_status || "pending");
 
       const montant = document.createElement("p");
       montant.textContent = "Total : " + order.total_xof + " FCFA";
@@ -556,8 +556,8 @@ async function loadOrders() {
         const li = document.createElement("li");
         li.textContent =
           (item.product_name || "Produit #" + item.product_id) +
-          " â€” QuantitÃ© : " + item.quantity +
-          " â€” Prix unitaire : " + item.unit_price + " FCFA";
+          " — Quantité : " + item.quantity +
+          " — Prix unitaire : " + item.unit_price + " FCFA";
 
         articles.appendChild(li);
       }
@@ -576,18 +576,18 @@ async function loadOrders() {
       );
 
       const statutsLivraison = {
-        pending: "ðŸŸ¡ En attente",
-        preparing: "ðŸ“¦ En prÃ©paration",
-        shipped: "ðŸšš ExpÃ©diÃ©e",
-        delivered: "âœ… LivrÃ©e",
-        stock_issue: "âš ï¸ ProblÃ¨me de stock"
+        pending: "🟡 En attente",
+        preparing: "📦 En préparation",
+        shipped: "🚚 Expédiée",
+        delivered: "✅ Livrée",
+        stock_issue: "⚠️ Problème de stock"
       };
 
       livraison.textContent =
         "Livraison : " +
         (statutsLivraison[order.fulfillment_status] ||
          order.fulfillment_status ||
-         "Non renseignÃ©");
+         "Non renseigné");
 
       // Informations de suivi du colis
       if (order.shipping_carrier || order.tracking_number) {
@@ -596,11 +596,11 @@ async function loadOrders() {
 
         const transporteur = document.createElement("p");
         transporteur.textContent =
-          "ðŸšš Transporteur : " + (order.shipping_carrier || "Non renseignÃ©");
+          "🚚 Transporteur : " + (order.shipping_carrier || "Non renseigné");
 
         const numero = document.createElement("p");
         numero.textContent =
-          "ðŸ”¢ NumÃ©ro de suivi : " + (order.tracking_number || "Non renseignÃ©");
+          "🔢 Numéro de suivi : " + (order.tracking_number || "Non renseigné");
 
         suiviColis.append(transporteur, numero);
 
@@ -611,7 +611,7 @@ async function loadOrders() {
             if (["https:", "http:"].includes(url.protocol)) {
               const lien = document.createElement("a");
               lien.href = url.href;
-              lien.textContent = "ðŸ”— Suivre le colis";
+              lien.textContent = "🔗 Suivre le colis";
               lien.target = "_blank";
               lien.rel = "noopener noreferrer";
 
@@ -626,7 +626,7 @@ async function loadOrders() {
           const dateExpedition = document.createElement("p");
 
           dateExpedition.textContent =
-            "ðŸ“… ExpÃ©diÃ©e le : " +
+            "📅 Expédiée le : " +
             new Date(order.shipped_at).toLocaleString("fr-FR");
 
           suiviColis.appendChild(dateExpedition);
@@ -635,9 +635,9 @@ async function loadOrders() {
         card.appendChild(suiviColis);
       }
       const transitions = {
-        pending: ["preparing", "ðŸ“¦ Commencer la prÃ©paration"],
-        preparing: ["shipped", "ðŸšš Marquer comme expÃ©diÃ©e"],
-        shipped: ["delivered", "âœ… Marquer comme livrÃ©e"]
+        pending: ["preparing", "📦 Commencer la préparation"],
+        preparing: ["shipped", "🚚 Marquer comme expédiée"],
+        shipped: ["delivered", "✅ Marquer comme livrée"]
       };
 
       const transition = transitions[order.fulfillment_status];
@@ -660,7 +660,7 @@ async function loadOrders() {
             if (transporteur === null) return;
 
             const numeroSuivi = prompt(
-              "NumÃ©ro de suivi du colis :"
+              "Numéro de suivi du colis :"
             );
 
             if (numeroSuivi === null) return;
@@ -674,7 +674,7 @@ async function loadOrders() {
 
             if (!transporteur.trim() || !numeroSuivi.trim()) {
               showMessage(
-                "Le transporteur et le numÃ©ro de suivi sont obligatoires.",
+                "Le transporteur et le numéro de suivi sont obligatoires.",
                 true
               );
               return;
@@ -704,7 +704,7 @@ async function loadOrders() {
             );
 
             await loadOrders();
-            showMessage("Statut de livraison actualisÃ©.");
+            showMessage("Statut de livraison actualisé.");
 
           } catch (error) {
             showMessage(error.message, true);
@@ -727,7 +727,7 @@ async function loadOrders() {
 $("createTestOrderBtn").addEventListener("click", async () => {
   const bouton = $("createTestOrderBtn");
 
-  if (!confirm("CrÃ©er une commande fictive pour tester la livraison ?")) {
+  if (!confirm("Créer une commande fictive pour tester la livraison ?")) {
     return;
   }
 
@@ -740,10 +740,10 @@ $("createTestOrderBtn").addEventListener("click", async () => {
     });
 
     if (!data.success) {
-      throw new Error(data.message || "CrÃ©ation impossible");
+      throw new Error(data.message || "Création impossible");
     }
 
-    showMessage("Commande fictive crÃ©Ã©e avec succÃ¨s.");
+    showMessage("Commande fictive créée avec succès.");
 
     await loadTestOrders();
 
@@ -770,10 +770,10 @@ async function loadTestOrders() {
     }
 
     const statuts = {
-      pending: "ðŸŸ¡ En attente",
-      preparing: "ðŸ“¦ En prÃ©paration",
-      shipped: "ðŸšš ExpÃ©diÃ©e",
-      delivered: "âœ… LivrÃ©e"
+      pending: "🟡 En attente",
+      preparing: "📦 En préparation",
+      shipped: "🚚 Expédiée",
+      delivered: "✅ Livrée"
     };
 
     for (const commande of commandes) {
@@ -783,7 +783,7 @@ async function loadTestOrders() {
         "padding:15px;margin:12px 0;border:1px solid #ddd;border-radius:8px;";
 
       const titre = document.createElement("h4");
-      titre.textContent = "ðŸ§ª TEST â€” Commande nÂ°" + commande.id;
+      titre.textContent = "🧪 TEST — Commande n°" + commande.id;
 
       const statut = document.createElement("p");
       statut.textContent =
@@ -803,15 +803,15 @@ async function loadTestOrders() {
       if (commande.tracking_number) {
         const suivi = document.createElement("p");
         suivi.textContent =
-          "NumÃ©ro de suivi : " + commande.tracking_number;
+          "Numéro de suivi : " + commande.tracking_number;
 
         carte.appendChild(suivi);
       }
 
       const actions = {
-        pending: ["ðŸ“¦ Commencer la prÃ©paration", "preparing"],
-        preparing: ["ðŸšš ExpÃ©dier", "shipped"],
-        shipped: ["âœ… Confirmer la livraison", "delivered"]
+        pending: ["📦 Commencer la préparation", "preparing"],
+        preparing: ["🚚 Expédier", "shipped"],
+        shipped: ["✅ Confirmer la livraison", "delivered"]
       };
 
       const action = actions[commande.fulfillment_status];
@@ -838,12 +838,12 @@ async function loadTestOrders() {
               return;
             }
 
-            const numero = prompt("NumÃ©ro de suivi :");
+            const numero = prompt("Numéro de suivi :");
 
             if (numero === null) return;
 
             if (!numero.trim()) {
-              alert("Le numÃ©ro de suivi est obligatoire.");
+              alert("Le numéro de suivi est obligatoire.");
               return;
             }
 
@@ -859,7 +859,7 @@ async function loadTestOrders() {
             informations.tracking_url = lien.trim();
           }
 
-          if (!confirm("Confirmer cette Ã©tape de livraison fictive ?")) {
+          if (!confirm("Confirmer cette étape de livraison fictive ?")) {
             return;
           }
 
@@ -894,12 +894,12 @@ async function loadTestOrders() {
       const supprimerTest = document.createElement("button");
 
       supprimerTest.type = "button";
-      supprimerTest.textContent = "ðŸ—‘ï¸ Supprimer le test";
+      supprimerTest.textContent = "🗑️ Supprimer le test";
       supprimerTest.style.marginLeft = "10px";
 
       supprimerTest.addEventListener("click", async () => {
         if (!confirm(
-          "Supprimer dÃ©finitivement la commande fictive nÂ°" +
+          "Supprimer définitivement la commande fictive n°" +
           commande.id + " ?"
         )) {
           return;
@@ -915,7 +915,7 @@ async function loadTestOrders() {
             }
           );
 
-          showMessage("Commande fictive supprimÃ©e.");
+          showMessage("Commande fictive supprimée.");
 
           await loadTestOrders();
 
@@ -943,7 +943,7 @@ $("refreshBtn").addEventListener("click", async () => {
 
   try {
     await loadProducts();
-    showMessage("Liste actualisÃ©e.");
+    showMessage("Liste actualisée.");
   } catch (error) {
     showMessage(error.message, true);
   }
@@ -955,14 +955,14 @@ $("logoutBtn").addEventListener("click", async () => {
       method: "POST"
     });
   } catch (error) {
-    console.warn("DÃ©connexion serveur :", error);
+    console.warn("Déconnexion serveur :", error);
   } finally {
     token = "";
     products = [];
     resetForm();
     setLoggedIn(false);
     $("products").replaceChildren();
-    showMessage("DÃ©connectÃ©.");
+    showMessage("Déconnecté.");
   }
 });
 

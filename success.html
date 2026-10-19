@@ -56,13 +56,12 @@ h1 { color: #176b36; }
     title.textContent = "Confirmation du paiement en attente";
     details.textContent =
       "Le statut du paiement n'est pas vérifié sur cette page. " +
-      "Si vous avez payé avec PayDunya, sa confirmation doit être " +
-      "vérifiée par le système de paiement.";
+      "Veuillez vérifier votre commande auprès du service client si nécessaire.";
     return;
   }
 
-  // Adresse réservée aux tests locaux.
-  // Elle ne fonctionnera pas pour les clients sur Internet.
+  // Adresse du backend SUNU SHOP.
+  // Utilisée pour vérifier les paiements Stripe.
   const API_URL = "https://djiby-sho.onrender.com";
 
   async function verifyPayment() {
@@ -78,7 +77,7 @@ h1 { color: #176b36; }
       if (response.ok && result.status === "paid") {
         title.textContent = "Paiement confirmé";
         details.textContent =
-          "Votre paiement a ?t? confirmé. Merci pour votre commande.";
+          "Votre paiement a été confirmé. Merci pour votre commande.";
       } else if (
         response.ok &&
         ["pending", "processing"].includes(result.status)
@@ -91,14 +90,14 @@ h1 { color: #176b36; }
         title.textContent = "Paiement non vérifié";
         details.textContent =
           "Nous ne pouvons pas encore confirmer votre paiement. " +
-          "Si votre compte a ?t? débité, ne payez pas une deuxième fois ; " +
+          "Si votre compte a été débité, ne payez pas une deuxième fois ; " +
           "contactez le service client.";
       }
     } catch (error) {
       title.textContent = "Vérification indisponible";
       details.textContent =
-        "Nous ne pouvons pas v?rifier le paiement pour le moment. " +
-        "Si votre compte a ?t? débité, ne payez pas une deuxième fois ; " +
+        "Nous ne pouvons pas vérifier le paiement pour le moment. " +
+        "Si votre compte a été débité, ne payez pas une deuxième fois ; " +
         "contactez le service client.";
     }
   }

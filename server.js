@@ -13,6 +13,8 @@ const path = require("path");
 dotenv.config();
 
 const app = express();
+const PAYDUNYA_ENABLED =
+  process.env.PAYDUNYA_ENABLED === "true";
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 app.disable("x-powered-by");
@@ -22,14 +24,21 @@ const SITE_ORIGIN = SITE_URL ? new URL(SITE_URL).origin : "";
 
 if (
   !SITE_URL ||
-  !process.env.ADMIN_PASSWORD_HASH ||
-  !process.env.PAYDUNYA_MASTER_KEY
+  !process.env.ADMIN_PASSWORD_HASH
 ) {
   throw new Error(
-    "Configurer SITE_URL, ADMIN_PASSWORD_HASH et les variables PAYDUNYA"
+    "Configurer SITE_URL et ADMIN_PASSWORD_HASH"
   );
 }
 
+if (
+  process.env.STRIPE_PAYMENTS_ENABLED === "true" &&
+  !process.env.STRIPE_SECRET_KEY
+) {
+  throw new Error(
+    "Configurer STRIPE_SECRET_KEY pour activer Stripe"
+  );
+}
 app.use(cors({
   origin(origin, callback) {
 
@@ -75,11 +84,12 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), (req, res
 
   try {
     const session = event.data.object;
-    if (session.payment_status !== "paid" ||
-        session.mode !== "payment" ||
-        session.currency !== "eur") {
-      return res.json({ received: true });
-    }
+if (
+  session.payment_status !== "paid" ||
+  session.mode !== "payment"
+) {
+  return res.json({ received: true });
+}
     const orderId = Number(session.metadata?.order_id);
     if (!Number.isSafeInteger(orderId) || orderId <= 0) {
       return res.status(400).send("Commande Stripe invalide");
@@ -106,13 +116,48 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), (req, res
         "SELECT product_id, quantity, unit_price FROM order_items WHERE order_id = ?"
       ).all(orderId);
       if (!articles.length) throw new Error("Commande sans articles");
-      const totalXof = articles.reduce((sum, a) => sum + a.quantity * a.unit_price, 0);
-      const expectedCents = Math.round(totalXof * 100 / 655.957);
-      if (!Number.isSafeInteger(totalXof) ||
-          session.amount_total !== expectedCents ||
-          session.amount_total < 50) {
-        throw new Error("Montant Stripe non conforme");
-      }
+      // Récupérer le pays enregistré lors de la commande
+let customer;
+
+try {
+  customer = JSON.parse(order.customer);
+} catch (error) {
+  throw new Error("Informations client invalides");
+}
+
+// Déterminer la devise attendue selon le pays
+const expectedCurrency = getStripeCurrencyByCountry(customer?.country);
+
+if (!expectedCurrency) {
+  throw new Error("Pays de commande non pris en charge");
+}
+
+// Recalculer le montant à partir des articles enregistrés
+const totalXof = articles.reduce(
+  (sum, a) => sum + a.quantity * a.unit_price,
+  0
+);
+
+// EUR : centimes / XOF et XAF : unités entières
+const expectedAmount =
+  expectedCurrency === "eur"
+    ? Math.round(totalXof * 100 / 655.957)
+    : totalXof;
+
+const minimumAmount =
+  expectedCurrency === "eur" ? 50 : 328;
+
+// Vérifier simultanément le montant et la devise
+if (
+  !Number.isSafeInteger(totalXof) ||
+  !Number.isSafeInteger(expectedAmount) ||
+  expectedAmount < minimumAmount ||
+  expectedAmount > 99999999 ||
+  session.currency !== expectedCurrency ||
+  session.amount_total !== expectedAmount
+) {
+  throw new Error("Montant ou devise Stripe non conforme");
+}
       if (order.status !== "pending") return; // Webhook deja traite
       const available = articles.every(a => {
         const p = db.prepare("SELECT stock FROM products WHERE id = ?").get(a.product_id);
@@ -1199,29 +1244,55 @@ app.delete("/admin/products/:id", admin, (req, res) => {
 // CONFIGURATION PAYDUNYA
 // =====================================
 
-const setup = new paydunya.Setup({
+let setup = null;
+let store = null;
 
-  masterKey: process.env.PAYDUNYA_MASTER_KEY,
-  privateKey: process.env.PAYDUNYA_PRIVATE_KEY,
-  publicKey: process.env.PAYDUNYA_PUBLIC_KEY,
-  token: process.env.PAYDUNYA_TOKEN,
+if (PAYDUNYA_ENABLED) {
 
-  mode: process.env.PAYDUNYA_MODE || "test"
-});
+  const requiredKeys = [
+    "PAYDUNYA_MASTER_KEY",
+    "PAYDUNYA_PRIVATE_KEY",
+    "PAYDUNYA_PUBLIC_KEY",
+    "PAYDUNYA_TOKEN"
+  ];
 
-const store = new paydunya.Store({
+  const missingKeys = requiredKeys.filter(
+    key => !process.env[key]
+  );
 
-  name: "DJIBY SHOP",
-  tagline: "Produits de qualité",
-  phoneNumber: "33745098191",
-  websiteURL: SITE_URL
-});
+  if (missingKeys.length > 0) {
+    throw new Error(
+      "Configuration PayDunya incomplète"
+    );
+  }
 
+  setup = new paydunya.Setup({
+    masterKey: process.env.PAYDUNYA_MASTER_KEY,
+    privateKey: process.env.PAYDUNYA_PRIVATE_KEY,
+    publicKey: process.env.PAYDUNYA_PUBLIC_KEY,
+    token: process.env.PAYDUNYA_TOKEN,
+    mode: process.env.PAYDUNYA_MODE || "test"
+  });
+
+  store = new paydunya.Store({
+    name: "DJIBY SHOP",
+    tagline: "Produits de qualité",
+    phoneNumber: "33745098191",
+    websiteURL: SITE_URL
+  });
+
+}
 // =====================================
 // CRÃ‰ER UN PAIEMENT
 // =====================================
 
 app.post("/create-payment", async (req, res) => {
+
+    if (!PAYDUNYA_ENABLED) {
+    return res.status(503).json({
+      error: "PayDunya désactivé sur ce serveur"
+    });
+  }
 
   try {
 
@@ -1333,6 +1404,12 @@ app.post("/create-payment", async (req, res) => {
 // =====================================
 
 app.post("/create-cart-payment", async (req, res) => {
+
+    if (!PAYDUNYA_ENABLED) {
+    return res.status(503).json({
+      error: "PayDunya désactivé sur ce serveur"
+    });
+  }
   try {
     const items = req.body?.items;
     const customer = req.body?.customer;
@@ -1518,25 +1595,72 @@ app.get("/stripe-payment-status", async (req, res) => {
   }
 
   try {
-    const order = db.prepare(
-      "SELECT id, status, invoice_token FROM orders WHERE invoice_token = ?"
-    ).get(sessionId);
 
+    const order = db.prepare(
+  "SELECT id, status, invoice_token, customer FROM orders WHERE invoice_token = ?"
+).get(sessionId);
     if (!order) {
       return res.status(404).json({ status: "not_found" });
     }
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    // Récupérer les articles enregistrés dans la commande
+const articles = db.prepare(
+  "SELECT product_id, quantity, unit_price FROM order_items WHERE order_id = ?"
+).all(order.id);
 
-    if (
-      session.id !== order.invoice_token ||
-      session.mode !== "payment" ||
-      session.metadata?.order_id !== String(order.id) ||
-      session.currency !== "eur"
-    ) {
-      return res.status(409).json({ status: "unverified" });
-    }
+if (!articles.length) {
+  return res.status(409).json({ status: "unverified" });
+}
 
+// Recuperer le pays du client enregistre dans la commande
+let customer;
+
+try {
+  customer = JSON.parse(order.customer);
+} catch (error) {
+  return res.status(409).json({ status: "unverified" });
+}
+
+// Determiner la devise autorisee selon le pays
+const expectedCurrency = getStripeCurrencyByCountry(customer?.country);
+
+if (!expectedCurrency) {
+  return res.status(409).json({ status: "unverified" });
+}
+
+// Recalculer le montant depuis les articles enregistres
+const totalXof = articles.reduce(
+  (sum, article) => sum + article.quantity * article.unit_price,
+  0
+);
+
+// EUR : centimes
+// XOF et XAF : unites entieres
+const expectedAmount =
+  expectedCurrency === "eur"
+    ? Math.round(totalXof * 100 / 655.957)
+    : totalXof;
+
+const minimumAmount =
+  expectedCurrency === "eur" ? 50 : 328;
+
+// Recuperer la session directement depuis Stripe
+const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+// Verifier la commande, la devise et le montant
+if (
+  !Number.isSafeInteger(totalXof) ||
+  !Number.isSafeInteger(expectedAmount) ||
+  expectedAmount < minimumAmount ||
+  expectedAmount > 99999999 ||
+  session.id !== order.invoice_token ||
+  session.mode !== "payment" ||
+  session.metadata?.order_id !== String(order.id) ||
+  session.currency !== expectedCurrency ||
+  session.amount_total !== expectedAmount
+) {
+  return res.status(409).json({ status: "unverified" });
+}
     if (session.payment_status !== "paid") {
       return res.json({ status: "pending" });
     }
@@ -1577,19 +1701,66 @@ app.post("/admin/create-stripe-test-payment", admin, (req, res) => {
   return createStripePayment(req, res);
 });
 
+// SUNU SHOP : déterminer la devise selon le pays
+function getStripeCurrencyByCountry(country) {
+
+  const xofCountries = [
+    "SN", "CI", "ML", "BF",
+    "BJ", "TG", "NE", "GW"
+  ];
+
+  const xafCountries = [
+    "CM", "GA", "CG",
+    "TD", "CF", "GQ"
+  ];
+
+  const eurCountries = [
+    "FR", "DE", "BE", "ES", "IT",
+    "PT", "NL", "LU", "AT", "IE",
+    "FI", "GR", "HR", "SI", "SK",
+    "EE", "LV", "LT", "MT", "CY",
+    "BG", "AD", "MC", "SM", "VA",
+    "ME", "XK"
+  ];
+
+  if (xofCountries.includes(country)) {
+    return "xof";
+  }
+
+  if (xafCountries.includes(country)) {
+    return "xaf";
+  }
+
+  if (eurCountries.includes(country)) {
+    return "eur";
+  }
+
+  return null;
+}
+
 async function createStripePayment(req, res) {
   if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
     return res.status(503).json({ success: false, message: "Stripe non configure" });
   }
   const items = req.body?.items;
   const customer = req.body?.customer;
-  const fields = ["firstName", "lastName", "email", "phone", "address"];
+  const fields = ["firstName", "lastName", "email", "phone", "address", "country"];
   if (!customer || !fields.every(key =>
     typeof customer[key] === "string" &&
     customer[key].trim().length > 0 && customer[key].length < 250
   ) || !Array.isArray(items) || items.length < 1 || items.length > 30) {
     return res.status(400).json({ success: false, message: "Panier ou client invalide" });
   }
+
+  // Déterminer la devise Stripe selon le pays du client
+const stripeCurrency = getStripeCurrencyByCountry(customer.country);
+
+if (!stripeCurrency) {
+  return res.status(400).json({
+    success: false,
+    message: "Pays non pris en charge pour le paiement Stripe"
+  });
+}
 
   const products = [];
   const ids = new Set();
@@ -1616,12 +1787,29 @@ async function createStripePayment(req, res) {
     products.push({ ...product, quantity });
   }
 
-  // 1 EUR = 655,957 XOF. Stripe attend des centimes entiers.
-  const cents = Math.round(totalXof * 100 / 655.957);
-  if (!Number.isSafeInteger(cents) || cents < 50 || cents > 99999999) {
-    return res.status(400).json({ success: false, message: "Montant non pris en charge" });
-  }
+// SUNU SHOP : calcul du montant selon la devise
+// EUR : centimes
+// XOF et XAF : unités entières, sans centimes
 
+const stripeAmount =
+  stripeCurrency === "eur"
+    ? Math.round(totalXof * 100 / 655.957)
+    : totalXof;
+
+// Vérification du montant
+const minimumAmount =
+  stripeCurrency === "eur" ? 50 : 328;
+
+if (
+  !Number.isSafeInteger(stripeAmount) ||
+  stripeAmount < minimumAmount ||
+  stripeAmount > 99999999
+) {
+  return res.status(400).json({
+    success: false,
+    message: "Montant non pris en charge"
+  });
+}
   let orderId;
   try {
     // On enregistre d'abord la commande en attente, sans modifier le stock.
@@ -1647,16 +1835,19 @@ async function createStripePayment(req, res) {
       client_reference_id: String(orderId),
       metadata: { order_id: String(orderId) },
       line_items: [{
+
         price_data: {
-          currency: "eur",
-          unit_amount: cents,
-          product_data: { name: `Commande SunuShop #${orderId} (${totalXof} FCFA)` }
-        },
+  currency: stripeCurrency,
+  unit_amount: stripeAmount,
+  product_data: {
+    name: `Commande SunuShop #${orderId} (${totalXof} FCFA)`
+  }
+},
         quantity: 1
       }],
-      success_url: "https://djibymb.github.io/djiby-shop/success.html?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url: "https://djibymb.github.io/djiby-shop/"
-    }, { idempotencyKey: `sunushop-order-${orderId}` });
+      success_url: SITE_URL + "/success.html?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: SITE_URL + "/"
+    }, { idempotencyKey: `sunushop-order-${crypto.randomUUID()}` });
 
     db.prepare("UPDATE orders SET invoice_token = ? WHERE id = ? AND status = 'pending'")
       .run(session.id, orderId);
@@ -1672,6 +1863,12 @@ async function createStripePayment(req, res) {
 // =====================================
 
 app.post("/ipn", async function(req, res) {
+
+    if (!PAYDUNYA_ENABLED) {
+    return res.status(503).json({
+      error: "PayDunya désactivé sur ce serveur"
+    });
+  }
 
   try {
 

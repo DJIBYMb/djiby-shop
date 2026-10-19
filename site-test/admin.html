@@ -1,0 +1,973 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration â€” DJIBY SHOP</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6fa;color:#182334}
+header{background:#14213d;color:white;padding:20px;text-align:center}
+header h1{margin:0;font-size:25px}
+header p{margin:8px 0 0;color:#d8e2f2}
+main{max-width:1100px;margin:25px auto;padding:0 15px}
+.card{background:white;padding:22px;border-radius:12px;box-shadow:0 3px 15px #00000010;margin-bottom:20px}
+h2{margin-top:0}
+input,textarea,button{font:inherit}
+input,textarea{width:100%;padding:12px;margin:7px 0 14px;border:1px solid #ccd3df;border-radius:7px}
+textarea{min-height:90px;resize:vertical}
+button{padding:11px 17px;border:0;border-radius:7px;background:#1769aa;color:white;cursor:pointer}
+button:hover{opacity:.9}
+button:disabled{opacity:.55;cursor:wait}
+.danger{background:#c62828}
+.secondary{background:#526176}
+.hidden{display:none!important}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row>*{flex:1;min-width:160px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.product{border:1px solid #e1e5eb;padding:15px;border-radius:9px;margin:12px 0}
+.product img{width:80px;height:80px;object-fit:cover;border-radius:6px;margin-right:6px}
+.message{padding:12px;border-radius:7px;margin:12px 0;white-space:pre-wrap}
+.ok{background:#e0f4e6;color:#14562c}
+.error{background:#ffe6e6;color:#922}
+label{font-weight:bold;display:block}
+small{color:#566174}
+</style>
+</head>
+<body>
+
+<header>
+<h1>ðŸ›ï¸ DJIBY SHOP</h1>
+<p>Espace administrateur</p>
+</header>
+
+<main>
+
+<section id="loginSection" class="card">
+<h2>ðŸ” Connexion administrateur</h2>
+<form id="loginForm">
+<label for="password">Mot de passe</label>
+<input id="password" type="password" autocomplete="current-password" required>
+<button type="submit">Se connecter</button>
+</form>
+</section>
+
+<section id="adminSection" class="hidden">
+
+<div class="card">
+<div class="actions">
+<button id="refreshBtn" type="button">ðŸ”„ Actualiser les produits</button>
+<button id="logoutBtn" class="secondary" type="button">ðŸšª DÃ©connexion</button>
+</div>
+</div>
+
+<section class="card">
+<h2 id="formTitle">âž• Ajouter un produit</h2>
+
+<form id="productForm">
+
+<label for="name">Nom du produit</label>
+<input id="name" maxlength="150" required>
+
+<div class="row">
+<div>
+<label for="price">Prix</label>
+<input id="price" type="number" min="1" step="1" required>
+</div>
+<div>
+<label for="stock">Stock</label>
+<input id="stock" type="number" min="0" step="1" required>
+</div>
+</div>
+
+<label for="description">Description</label>
+<textarea id="description" maxlength="3000"></textarea>
+
+<label for="photos">Ajouter des photos</label>
+<input id="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+<small>JPEG, PNG ou WebP â€” 5 Mo maximum par photo. Jusqu'Ã  5 photos par envoi.</small>
+
+<label for="imageUrls" style="margin-top:15px">Adresses des images</label>
+<textarea id="imageUrls" placeholder="Une adresse par ligne : https://... ou /uploads/..."></textarea>
+<small>Les photos dÃ©jÃ  enregistrÃ©es sont conservÃ©es si tu ne modifies pas ce champ.</small>
+
+<div class="actions" style="margin-top:15px">
+<button id="saveBtn" type="submit">ðŸ’¾ Enregistrer le produit</button>
+<button id="cancelBtn" class="secondary hidden" type="button">Annuler la modification</button>
+</div>
+
+</form>
+</section>
+
+<section class="card">
+<h2>ðŸ“¦ Produits enregistrÃ©s</h2>
+<p id="count"></p>
+<div id="products"></div>
+</section>
+
+<section class="card" id="ordersSection">
+  <h2>ðŸ“¦ Commandes clients</h2>
+
+  <p>Consultez les commandes Stripe et PayDunya.</p>
+
+  <button id="refreshOrdersBtn" type="button">
+    ðŸ”„ Actualiser les commandes
+  </button>
+
+  <button id="createTestOrderBtn" type="button">
+    ðŸ§ª CrÃ©er une commande de test
+  </button>
+
+    <div id="testOrdersSection" style="margin-top:25px; padding:15px; border:2px dashed #eab308; border-radius:10px;">
+
+    <h3>ðŸ§ª Commandes de test</h3>
+
+    <p>
+      Simulation uniquement : aucun paiement et aucune modification du stock.
+    </p>
+
+    <button id="refreshTestOrdersBtn" type="button">
+      ðŸ”„ Actualiser les tests
+    </button>
+
+    <div id="testOrdersList" style="margin-top:15px;">
+      Aucune simulation chargÃ©e.
+    </div>
+
+  </div>
+<div id="ordersList" style="margin-top:20px;">
+    Cliquez sur Actualiser les commandes.
+  </div>
+</section>
+
+</section>
+
+<div id="message" role="status" aria-live="polite"></div>
+
+</main>
+
+<script>
+"use strict";
+
+const API_URL = "https://sunushop-test.onrender.com";
+
+let token = "";
+let products = [];
+let editingId = null;
+let busy = false;
+
+const $ = id => document.getElementById(id);
+
+function showMessage(text, isError = false) {
+  const box = $("message");
+  box.textContent = text;
+  box.className = "message " + (isError ? "error" : "ok");
+}
+
+function clearMessage() {
+  $("message").textContent = "";
+  $("message").className = "";
+}
+
+function setLoggedIn(loggedIn) {
+  $("loginSection").classList.toggle("hidden", loggedIn);
+  $("adminSection").classList.toggle("hidden", !loggedIn);
+}
+
+async function request(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+
+  if (token) {
+    headers.set("Authorization", "Bearer " + token);
+  }
+
+  const response = await fetch(API_URL + path, {
+    ...options,
+    headers
+  });
+
+  const contentType = response.headers.get("content-type") || "";
+
+  const data = contentType.includes("application/json")
+    ? await response.json()
+    : { message: await response.text() };
+
+  if (!response.ok) {
+    if (response.status === 401 && path !== "/admin/login") {
+      token = "";
+      setLoggedIn(false);
+    }
+
+    throw new Error(data.message || "Erreur du serveur");
+  }
+
+  return data;
+}
+
+$("loginForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  clearMessage();
+
+  const button = event.submitter;
+  button.disabled = true;
+
+  try {
+    const data = await request("/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        password: $("password").value
+      })
+    });
+
+    if (!/^[a-f0-9]{64}$/.test(data.token || "")) {
+      throw new Error("Jeton de connexion invalide");
+    }
+
+    token = data.token;
+    $("password").value = "";
+
+    setLoggedIn(true);
+    await loadProducts();
+
+    showMessage("Connexion rÃ©ussie.");
+  } catch (error) {
+    showMessage(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+async function loadProducts() {
+  const data = await request("/products");
+
+  products = Array.isArray(data)
+    ? data
+    : Array.isArray(data.products)
+      ? data.products
+      : [];
+
+  $("count").textContent = products.length + " produit(s)";
+  renderProducts();
+}
+
+function renderProducts() {
+  const container = $("products");
+  container.replaceChildren();
+
+  for (const product of products) {
+    const box = document.createElement("div");
+    box.className = "product";
+
+    const title = document.createElement("h3");
+    title.textContent = product.name;
+    box.appendChild(title);
+
+    const info = document.createElement("p");
+    info.textContent =
+      "ID : " + product.id +
+      " | Prix : " + product.price +
+      " | Stock : " + product.stock;
+    box.appendChild(info);
+
+    let images = product.images || [];
+
+    if (typeof images === "string") {
+      try {
+        images = JSON.parse(images);
+      } catch {
+        images = [];
+      }
+    }
+
+    if (Array.isArray(images)) {
+      for (const src of images.slice(0, 12)) {
+        if (typeof src !== "string") continue;
+
+        const img = document.createElement("img");
+        img.src = src.startsWith("/uploads/")
+          ? API_URL + src
+          : src;
+        img.alt = product.name;
+        img.loading = "lazy";
+        box.appendChild(img);
+      }
+    }
+
+    const description = document.createElement("p");
+    description.textContent = product.description || "";
+    box.appendChild(description);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.textContent = "âœï¸ Modifier";
+    edit.addEventListener("click", () => editProduct(product));
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "danger";
+    remove.textContent = "ðŸ—‘ï¸ Supprimer";
+    remove.addEventListener("click", () => deleteProduct(product));
+
+    actions.append(edit, remove);
+    box.appendChild(actions);
+
+    container.appendChild(box);
+  }
+}
+
+function editProduct(product) {
+  editingId = product.id;
+
+  $("formTitle").textContent = "âœï¸ Modifier : " + product.name;
+  $("name").value = product.name || "";
+  $("price").value = product.price;
+  $("stock").value = product.stock;
+  $("description").value = product.description || "";
+
+  let images = product.images || [];
+
+  if (typeof images === "string") {
+    try {
+      images = JSON.parse(images);
+    } catch {
+      images = [];
+    }
+  }
+
+  $("imageUrls").value = Array.isArray(images)
+    ? images.join("\n")
+    : "";
+
+  $("photos").value = "";
+  $("cancelBtn").classList.remove("hidden");
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  $("name").focus();
+}
+
+function resetForm() {
+  editingId = null;
+  $("productForm").reset();
+  $("imageUrls").value = "";
+  $("formTitle").textContent = "âž• Ajouter un produit";
+  $("cancelBtn").classList.add("hidden");
+}
+
+$("cancelBtn").addEventListener("click", resetForm);
+
+$("productForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (busy) return;
+
+  busy = true;
+  $("saveBtn").disabled = true;
+  clearMessage();
+
+  try {
+    let images = $("imageUrls").value
+      .split("\n")
+      .map(value => value.trim())
+      .filter(Boolean);
+
+    const files = Array.from($("photos").files);
+
+    if (files.length > 5) {
+      throw new Error("Maximum 5 photos par envoi.");
+    }
+
+    if (files.some(file =>
+      file.size > 5 * 1024 * 1024 ||
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type)
+    )) {
+      throw new Error("Photos invalides : JPEG, PNG ou WebP, 5 Mo maximum.");
+    }
+
+    if (images.length + files.length > 12) {
+      throw new Error("Maximum 12 images par produit.");
+    }
+
+    if (files.length) {
+      const formData = new FormData();
+
+      for (const file of files) {
+        formData.append("photos", file);
+      }
+
+      const uploaded = await request("/admin/upload", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!Array.isArray(uploaded.images)) {
+        throw new Error("RÃ©ponse de tÃ©lÃ©chargement invalide.");
+      }
+
+      images.push(...uploaded.images);
+    }
+
+    const payload = {
+      name: $("name").value.trim(),
+      price: Number($("price").value),
+      stock: Number($("stock").value),
+      description: $("description").value,
+      images
+    };
+
+    if (
+      !payload.name ||
+      !Number.isSafeInteger(payload.price) ||
+      payload.price <= 0 ||
+      !Number.isSafeInteger(payload.stock) ||
+      payload.stock < 0
+    ) {
+      throw new Error("VÃ©rifie le nom, le prix et le stock.");
+    }
+
+    const isEditing = editingId !== null;
+
+    if (isEditing && !confirm(
+      "Confirmer la modification de ce produit ?"
+    )) {
+      return;
+    }
+
+    await request(
+      isEditing
+        ? "/admin/products/" + encodeURIComponent(editingId)
+        : "/admin/products",
+      {
+        method: isEditing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    resetForm();
+    await loadProducts();
+
+    showMessage(
+      isEditing
+        ? "Produit modifiÃ© avec succÃ¨s."
+        : "Produit ajoutÃ© avec succÃ¨s."
+    );
+
+  } catch (error) {
+    showMessage(error.message, true);
+  } finally {
+    busy = false;
+    $("saveBtn").disabled = false;
+  }
+});
+
+async function deleteProduct(product) {
+  if (busy) return;
+
+  const confirmed = confirm(
+    "ATTENTION : supprimer dÃ©finitivement le produit Â« " +
+    product.name +
+    " Â» (ID " + product.id + ") ?"
+  );
+
+  if (!confirmed) return;
+
+  busy = true;
+  clearMessage();
+
+  try {
+    await request(
+      "/admin/products/" + encodeURIComponent(product.id),
+      { method: "DELETE" }
+    );
+
+    if (editingId === product.id) {
+      resetForm();
+    }
+
+    await loadProducts();
+    showMessage("Produit supprimÃ©.");
+
+  } catch (error) {
+    showMessage(error.message, true);
+  } finally {
+    busy = false;
+  }
+}
+
+async function loadOrders() {
+  const liste = $("ordersList");
+  liste.textContent = "Chargement des commandes...";
+
+  try {
+    const data = await request("/admin/orders");
+    const orders = Array.isArray(data.orders) ? data.orders : [];
+
+    if (orders.length === 0) {
+      liste.textContent = "Aucune commande enregistrÃ©e.";
+      return;
+    }
+
+    liste.replaceChildren();
+
+    for (const order of orders) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const titre = document.createElement("h3");
+      titre.textContent = "Commande #" + order.id;
+
+      const client = order.customer || {};
+
+      const nom = document.createElement("p");
+      nom.textContent =
+        "Client : " +
+        [client.firstName, client.lastName].filter(Boolean).join(" ");
+
+      const email = document.createElement("p");
+      email.textContent = "Email : " + (client.email || "");
+
+      const telephone = document.createElement("p");
+      telephone.textContent = "TÃ©lÃ©phone : " + (client.phone || "");
+
+      const adresse = document.createElement("p");
+      adresse.textContent = "Adresse : " + (client.address || "");
+
+      const paiement = document.createElement("p");
+      paiement.textContent =
+        "Paiement : " + (order.payment_provider || "Non prÃ©cisÃ©");
+
+      const statut = document.createElement("p");
+      statut.textContent = "Statut : " + order.status;
+
+      const livraison = document.createElement("p");
+      livraison.textContent =
+        "PrÃ©paration : " + (order.fulfillment_status || "pending");
+
+      const montant = document.createElement("p");
+      montant.textContent = "Total : " + order.total_xof + " FCFA";
+
+      const articles = document.createElement("ul");
+
+      for (const item of order.items || []) {
+        const li = document.createElement("li");
+        li.textContent =
+          (item.product_name || "Produit #" + item.product_id) +
+          " â€” QuantitÃ© : " + item.quantity +
+          " â€” Prix unitaire : " + item.unit_price + " FCFA";
+
+        articles.appendChild(li);
+      }
+
+      card.append(
+        titre,
+        nom,
+        email,
+        telephone,
+        adresse,
+        paiement,
+        statut,
+        livraison,
+        montant,
+        articles
+      );
+
+      const statutsLivraison = {
+        pending: "ðŸŸ¡ En attente",
+        preparing: "ðŸ“¦ En prÃ©paration",
+        shipped: "ðŸšš ExpÃ©diÃ©e",
+        delivered: "âœ… LivrÃ©e",
+        stock_issue: "âš ï¸ ProblÃ¨me de stock"
+      };
+
+      livraison.textContent =
+        "Livraison : " +
+        (statutsLivraison[order.fulfillment_status] ||
+         order.fulfillment_status ||
+         "Non renseignÃ©");
+
+      // Informations de suivi du colis
+      if (order.shipping_carrier || order.tracking_number) {
+
+        const suiviColis = document.createElement("div");
+
+        const transporteur = document.createElement("p");
+        transporteur.textContent =
+          "ðŸšš Transporteur : " + (order.shipping_carrier || "Non renseignÃ©");
+
+        const numero = document.createElement("p");
+        numero.textContent =
+          "ðŸ”¢ NumÃ©ro de suivi : " + (order.tracking_number || "Non renseignÃ©");
+
+        suiviColis.append(transporteur, numero);
+
+        if (order.tracking_url) {
+          try {
+            const url = new URL(order.tracking_url);
+
+            if (["https:", "http:"].includes(url.protocol)) {
+              const lien = document.createElement("a");
+              lien.href = url.href;
+              lien.textContent = "ðŸ”— Suivre le colis";
+              lien.target = "_blank";
+              lien.rel = "noopener noreferrer";
+
+              suiviColis.appendChild(lien);
+            }
+          } catch {
+            // Lien invalide : ne pas l'afficher
+          }
+        }
+
+        if (order.shipped_at) {
+          const dateExpedition = document.createElement("p");
+
+          dateExpedition.textContent =
+            "ðŸ“… ExpÃ©diÃ©e le : " +
+            new Date(order.shipped_at).toLocaleString("fr-FR");
+
+          suiviColis.appendChild(dateExpedition);
+        }
+
+        card.appendChild(suiviColis);
+      }
+      const transitions = {
+        pending: ["preparing", "ðŸ“¦ Commencer la prÃ©paration"],
+        preparing: ["shipped", "ðŸšš Marquer comme expÃ©diÃ©e"],
+        shipped: ["delivered", "âœ… Marquer comme livrÃ©e"]
+      };
+
+      const transition = transitions[order.fulfillment_status];
+
+      if (order.status === "paid" && transition) {
+        const boutonLivraison = document.createElement("button");
+        boutonLivraison.type = "button";
+        boutonLivraison.textContent = transition[1];
+
+        boutonLivraison.addEventListener("click", async () => {
+          const donneesLivraison = {
+            fulfillment_status: transition[0]
+          };
+
+          if (transition[0] === "shipped") {
+            const transporteur = prompt(
+              "Nom du transporteur (Colissimo, DHL, Chronopost...) :"
+            );
+
+            if (transporteur === null) return;
+
+            const numeroSuivi = prompt(
+              "NumÃ©ro de suivi du colis :"
+            );
+
+            if (numeroSuivi === null) return;
+
+            const lienSuivi = prompt(
+              "Lien de suivi du colis (facultatif) :",
+              ""
+            );
+
+            if (lienSuivi === null) return;
+
+            if (!transporteur.trim() || !numeroSuivi.trim()) {
+              showMessage(
+                "Le transporteur et le numÃ©ro de suivi sont obligatoires.",
+                true
+              );
+              return;
+            }
+
+            donneesLivraison.shipping_carrier = transporteur.trim();
+            donneesLivraison.tracking_number = numeroSuivi.trim();
+            donneesLivraison.tracking_url = lienSuivi.trim();
+          }
+
+          if (!confirm("Confirmer le changement de statut de cette commande ?")) {
+            return;
+          }
+
+          boutonLivraison.disabled = true;
+
+          try {
+            await request(
+              "/admin/orders/" + order.id + "/fulfillment",
+              {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify(donneesLivraison)
+              }
+            );
+
+            await loadOrders();
+            showMessage("Statut de livraison actualisÃ©.");
+
+          } catch (error) {
+            showMessage(error.message, true);
+            boutonLivraison.disabled = false;
+          }
+        });
+
+        card.appendChild(boutonLivraison);
+      }
+
+      liste.appendChild(card);
+    }
+
+  } catch (error) {
+    liste.textContent = "Impossible de charger les commandes.";
+    showMessage(error.message, true);
+  }
+}
+
+$("createTestOrderBtn").addEventListener("click", async () => {
+  const bouton = $("createTestOrderBtn");
+
+  if (!confirm("CrÃ©er une commande fictive pour tester la livraison ?")) {
+    return;
+  }
+
+  bouton.disabled = true;
+  clearMessage();
+
+  try {
+    const data = await request("/admin/test-orders", {
+      method: "POST"
+    });
+
+    if (!data.success) {
+      throw new Error(data.message || "CrÃ©ation impossible");
+    }
+
+    showMessage("Commande fictive crÃ©Ã©e avec succÃ¨s.");
+
+    await loadTestOrders();
+
+  } catch (error) {
+    showMessage(error.message, true);
+  } finally {
+    bouton.disabled = false;
+  }
+});
+async function loadTestOrders() {
+  const liste = $("testOrdersList");
+
+  liste.textContent = "Chargement des commandes fictives...";
+
+  try {
+    const data = await request("/admin/test-orders");
+    const commandes = Array.isArray(data.orders) ? data.orders : [];
+
+    liste.replaceChildren();
+
+    if (commandes.length === 0) {
+      liste.textContent = "Aucune commande de test.";
+      return;
+    }
+
+    const statuts = {
+      pending: "ðŸŸ¡ En attente",
+      preparing: "ðŸ“¦ En prÃ©paration",
+      shipped: "ðŸšš ExpÃ©diÃ©e",
+      delivered: "âœ… LivrÃ©e"
+    };
+
+    for (const commande of commandes) {
+      const carte = document.createElement("div");
+
+      carte.style.cssText =
+        "padding:15px;margin:12px 0;border:1px solid #ddd;border-radius:8px;";
+
+      const titre = document.createElement("h4");
+      titre.textContent = "ðŸ§ª TEST â€” Commande nÂ°" + commande.id;
+
+      const statut = document.createElement("p");
+      statut.textContent =
+        "Statut : " +
+        (statuts[commande.fulfillment_status] || "Inconnu");
+
+      carte.append(titre, statut);
+
+      if (commande.shipping_carrier) {
+        const transporteur = document.createElement("p");
+        transporteur.textContent =
+          "Transporteur : " + commande.shipping_carrier;
+
+        carte.appendChild(transporteur);
+      }
+
+      if (commande.tracking_number) {
+        const suivi = document.createElement("p");
+        suivi.textContent =
+          "NumÃ©ro de suivi : " + commande.tracking_number;
+
+        carte.appendChild(suivi);
+      }
+
+      const actions = {
+        pending: ["ðŸ“¦ Commencer la prÃ©paration", "preparing"],
+        preparing: ["ðŸšš ExpÃ©dier", "shipped"],
+        shipped: ["âœ… Confirmer la livraison", "delivered"]
+      };
+
+      const action = actions[commande.fulfillment_status];
+
+      if (action) {
+        const bouton = document.createElement("button");
+        bouton.type = "button";
+        bouton.textContent = action[0];
+
+        bouton.addEventListener("click", async () => {
+          const nouveauStatut = action[1];
+
+          const informations = {
+            fulfillment_status: nouveauStatut
+          };
+
+          if (nouveauStatut === "shipped") {
+            const transporteur = prompt("Nom du transporteur :");
+
+            if (transporteur === null) return;
+
+            if (!transporteur.trim()) {
+              alert("Le transporteur est obligatoire.");
+              return;
+            }
+
+            const numero = prompt("NumÃ©ro de suivi :");
+
+            if (numero === null) return;
+
+            if (!numero.trim()) {
+              alert("Le numÃ©ro de suivi est obligatoire.");
+              return;
+            }
+
+            const lien = prompt(
+              "Lien de suivi (facultatif) :",
+              ""
+            );
+
+            if (lien === null) return;
+
+            informations.shipping_carrier = transporteur.trim();
+            informations.tracking_number = numero.trim();
+            informations.tracking_url = lien.trim();
+          }
+
+          if (!confirm("Confirmer cette Ã©tape de livraison fictive ?")) {
+            return;
+          }
+
+          bouton.disabled = true;
+
+          try {
+            await request(
+              "/admin/test-orders/" +
+              encodeURIComponent(commande.id) +
+              "/fulfillment",
+              {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify(informations)
+              }
+            );
+
+            await loadTestOrders();
+
+          } catch (error) {
+            alert("Erreur : " + error.message);
+            bouton.disabled = false;
+          }
+        });
+
+        carte.appendChild(bouton);
+      }
+
+      // Supprimer uniquement une commande fictive
+      const supprimerTest = document.createElement("button");
+
+      supprimerTest.type = "button";
+      supprimerTest.textContent = "ðŸ—‘ï¸ Supprimer le test";
+      supprimerTest.style.marginLeft = "10px";
+
+      supprimerTest.addEventListener("click", async () => {
+        if (!confirm(
+          "Supprimer dÃ©finitivement la commande fictive nÂ°" +
+          commande.id + " ?"
+        )) {
+          return;
+        }
+
+        supprimerTest.disabled = true;
+
+        try {
+          await request(
+            "/admin/test-orders/" + encodeURIComponent(commande.id),
+            {
+              method: "DELETE"
+            }
+          );
+
+          showMessage("Commande fictive supprimÃ©e.");
+
+          await loadTestOrders();
+
+        } catch (error) {
+          alert("Erreur : " + error.message);
+          supprimerTest.disabled = false;
+        }
+      });
+
+      carte.appendChild(supprimerTest);
+
+      liste.appendChild(carte);
+    }
+
+  } catch (error) {
+    liste.textContent =
+      "Erreur de chargement : " + error.message;
+  }
+}
+
+$("refreshTestOrdersBtn").addEventListener("click", loadTestOrders);
+$("refreshOrdersBtn").addEventListener("click", loadOrders);
+$("refreshBtn").addEventListener("click", async () => {
+  clearMessage();
+
+  try {
+    await loadProducts();
+    showMessage("Liste actualisÃ©e.");
+  } catch (error) {
+    showMessage(error.message, true);
+  }
+});
+
+$("logoutBtn").addEventListener("click", async () => {
+  try {
+    await request("/admin/logout", {
+      method: "POST"
+    });
+  } catch (error) {
+    console.warn("DÃ©connexion serveur :", error);
+  } finally {
+    token = "";
+    products = [];
+    resetForm();
+    setLoggedIn(false);
+    $("products").replaceChildren();
+    showMessage("DÃ©connectÃ©.");
+  }
+});
+
+setLoggedIn(false);
+</script>
+
+</body>
+</html>

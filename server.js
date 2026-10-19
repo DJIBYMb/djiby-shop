@@ -1847,7 +1847,7 @@ if (
       }],
       success_url: SITE_URL + "/success.html?session_id={CHECKOUT_SESSION_ID}",
       cancel_url: SITE_URL + "/"
-    }, { idempotencyKey: `sunushop-order-${orderId}` });
+    }, { idempotencyKey: `sunushop-order-${crypto.randomUUID()}` });
 
     db.prepare("UPDATE orders SET invoice_token = ? WHERE id = ? AND status = 'pending'")
       .run(session.id, orderId);

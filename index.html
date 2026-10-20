@@ -691,35 +691,39 @@ function addToCart(productId) {
 }
 let detailIndex = 0;
 
-const products = [
-{ id:1, name:"Produit 1", price:6600, stock:5, images:["gf.jpeg","gd.jpeg","gh.jpeg"], current:0, description:"• Bonne qualité<br>• Livraison gratuit<br>Nouvelle robe plissée élégante et tendance pour femmes, col en V, idéale pour les trajets quotidiens au printemps/automne" },
-{ id:2, name:"Produit 2", price:5500, stock:10, images:["pe.jpeg","pg.jpeg","pd.jpeg"], current:0, description:"• Produit vérifié<br>• Disponible<br>.Brosse à cheveux électrique 2-en-1 pour lisser et boucler, utilisation sur cheveux secs ou humides, un outil de coiffure polyvalent" },
-{ id:3, name:"Produit 3", price:7800, stock:8, images:["se.jpeg","sr.jpeg","st.jpeg"], current:0, description:"• Haute qualité<br>• Livraison partout au senegal<br>Mini Sac Bandoulière Carré à Fermeture Éclair avec Chaîne Dorée - Élégant, Beige et Marron, Idéal pour le Travail, le Bureau, les Fêtes et les Voyages, Sac de Bureau|Sac à Chaîne|Fermeture Éclair" },
-{ id:4, name:"Produit 4", price:7900, stock:12, images:["ro.jpeg","rb.jpeg","re.jpeg"], current:0, description:"• Nouveau modèle<br>• Disponible maintenant<br>Robe de mariée pour femme, élégante et raffinée, imprimé floral, design à une épaule, taille cintrée, coupe trapèze longue, tenue de fête tendance" },
-{ id:5, name:"Produit 5", price:7000, stock:6, images:["p5-1.jpeg","p5-2.jpeg","p5-3.jpeg"], current:0, description:"• Bonne finition<br>• Produit populaire" },
-{ id:6, name:"Produit 6", price:7500, stock:9, images:["p6-1.jpeg","p6-2.jpeg","p6-3.jpeg"], current:0, description:"• Très bonne qualité<br>• Livraison disponible" },
-{ id:7, name:"Produit 7", price:8000, stock:7, images:["p7-1.jpeg","p7-2.jpeg","p7-3.jpeg"], current:0, description:"• Design moderne<br>• Disponible" },
-{ id:8, name:"Produit 8", price:8500, stock:11, images:["p8-1.jpeg","p8-2.jpeg","p8-3.jpeg"], current:0, description:"• Produit vérifié<br>• Qualité premium" },
-{ id:9, name:"Produit 9", price:9000, stock:5, images:["p9-1.jpeg","p9-2.jpeg","p9-3.jpeg"], current:0, description:"• Livraison Sénégal<br>• Bon état" },
-{ id:10, name:"Produit 10", price:9500, stock:15, images:["p10-1.jpeg","p10-2.jpeg","p10-3.jpeg"], current:0, description:"• Produit populaire<br>• Disponible" },
-{ id:11, name:"Produit 11", price:10000, stock:4, images:["p11-1.jpeg","p11-2.jpeg","p11-3.jpeg"], current:0, description:"• Bonne qualité<br>• Livraison rapide" },
-{ id:12, name:"Produit 12", price:10500, stock:6, images:["p12-1.jpeg","p12-2.jpeg","p12-3.jpeg"], current:0, description:"• Produit original<br>• Disponible" },
-{ id:13, name:"Produit 13", price:11000, stock:8, images:["p13-1.jpeg","p13-2.jpeg","p13-3.jpeg"], current:0, description:"• Très demandé<br>• Haute qualité" },
-{ id:14, name:"Produit 14", price:11500, stock:10, images:["p14-1.jpeg","p14-2.jpeg","p14-3.jpeg"], current:0, description:"• Design élégant<br>• Livraison possible" },
-{ id:15, name:"Produit 15", price:12000, stock:5, images:["p15-1.jpeg","p15-2.jpeg","p15-3.jpeg"], current:0, description:"• Produit neuf<br>• Disponible maintenant" },
-{ id:16, name:"Produit 16", price:12500, stock:6, images:["p16-1.jpeg","p16-2.jpeg","p16-3.jpeg"], current:0, description:"• Bonne finition<br>• Produit vérifié" },
-{ id:17, name:"Produit 17", price:13000, stock:7, images:["p17-1.jpeg","p17-2.jpeg","p17-3.jpeg"], current:0, description:"• Qualité premium<br>• Disponible" },
-{ id:18, name:"Produit 18", price:13500, stock:8, images:["p18-1.jpeg","p18-2.jpeg","p18-3.jpeg"], current:0, description:"• Livraison rapide<br>• Bon produit" },
-{ id:19, name:"Produit 19", price:14000, stock:9, images:["p19-1.jpeg","p19-2.jpeg","p19-3.jpeg"], current:0, description:"• Très bonne qualité<br>• Disponible" },
-{ id:20, name:"Produit 20", price:14500, stock:10, images:["p20-1.jpeg","p20-2.jpeg","p20-3.jpeg"], current:0, description:"• Produit tendance<br>• Livraison Sénégal" },
-{ id:21, name:"Produit 21", price:15000, stock:5, images:["p21-1.jpeg","p21-2.jpeg","p21-3.jpeg"], current:0, description:"• Produit premium<br>• Disponible" },
-{ id:22, name:"Produit 22", price:15500, stock:6, images:["p22-1.jpeg","p22-2.jpeg","p22-3.jpeg"], current:0, description:"• Design moderne<br>• Haute qualité" },
-{ id:23, name:"Produit 23", price:16000, stock:7, images:["p23-1.jpeg","p23-2.jpeg","p23-3.jpeg"], current:0, description:"• Produit neuf<br>• Disponible" },
-{ id:24, name:"Produit 24", price:16500, stock:8, images:["p24-1.jpeg","p24-2.jpeg","p24-3.jpeg"], current:0, description:"• Livraison rapide<br>• Produit vérifié" },
-{ id:25, name:"Produit 25", price:17000, stock:9, images:["p25-1.jpeg","p25-2.jpeg","p25-3.jpeg"], current:0, description:"• Très populaire<br>• Disponible" },
-{ id:26, name:"Produit 26", price:17500, stock:10, images:["p26-1.jpeg","p26-2.jpeg","p26-3.jpeg"], current:0, description:"• Bonne qualité<br>• Livraison Sénégal" },
-{ id:27, name:"Produit 27", price:18000, stock:5, images:["p27-1.jpeg","p27-2.jpeg","p27-3.jpeg"], current:0, description:"• Produit premium<br>• Disponible maintenant" }
-];
+// Les produits, prix et stocks proviennent uniquement du backend.
+let products = [];
+
+async function loadShopProducts() {
+  const box = document.getElementById("products");
+  try {
+    const response = await fetch(API_URL + "/products", { cache: "no-store" });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const data = await response.json();
+    if (!Array.isArray(data)) throw new Error("Format de produits invalide");
+
+    products = data.filter(p => p && Number.isSafeInteger(p.id)).map(p => ({
+      ...p,
+      images: Array.isArray(p.images) ? p.images.filter(src => typeof src === "string") : [],
+      description: typeof p.description === "string" ? p.description : ""
+    }));
+
+    // Ne jamais afficher un ancien prix ou stock comme s'il était à jour.
+    cart = cart.filter(item => products.some(p => p.id === item.id));
+    for (const item of cart) {
+      const product = products.find(p => p.id === item.id);
+      item.quantity = Math.min(Math.max(1, Math.floor(Number(item.quantity) || 1)), product.stock);
+    }
+    cart = cart.filter(item => item.quantity > 0);
+    saveCart();
+    searchProducts();
+    if (document.getElementById("cartModal").style.display === "flex") renderCart();
+  } catch (error) {
+    console.error("Impossible de charger les produits :", error);
+    products = [];
+    box.textContent = "Les produits sont temporairement indisponibles. Réessayez plus tard.";
+  }
+}
 
 function checkRobot(){
   if(document.getElementById("robotAnswer").value == "7"){
@@ -745,7 +749,7 @@ window.onload = function(){
 
 function getProductImageUrl(src) {
   if (typeof src !== "string" || !src) {
-    return "";
+    return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect width='100%25' height='100%25' fill='%23eeeeee'/%3E%3C/svg%3E";
   }
 
   if (src.startsWith("/uploads/")) {
@@ -762,7 +766,7 @@ function renderProducts(list){
   list.forEach(p=>{
     box.innerHTML += `
       <div class="card simple-card" onclick="showProductDetails(${p.id})">
-        <img class="product-main-img" src="${getProductImageUrl(p.images[0])}">
+        <img class="product-main-img" src="${getProductImageUrl(p.images[0] || "")}">
         <div class="simple-price">${formatShopPrice(p.price)}</div>
       </div>`;
   });
@@ -791,6 +795,7 @@ function searchProducts(){
 
 function showProductDetails(id){
   detailProduct = products.find(item => item.id === id);
+  if (!detailProduct) return;
   detailIndex = 0;
 
   document.getElementById("detailMainImage").src =
@@ -925,7 +930,7 @@ function goTop(){
   });
 }
 
-renderProducts(products);
+loadShopProducts();
 </script>
 <script>
 if ("serviceWorker" in navigator) {

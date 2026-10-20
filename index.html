@@ -743,6 +743,18 @@ window.onload = function(){
   }
 }
 
+function getProductImageUrl(src) {
+  if (typeof src !== "string" || !src) {
+    return "";
+  }
+
+  if (src.startsWith("/uploads/")) {
+    return API_URL + src;
+  }
+
+  return src;
+}
+
 function renderProducts(list){
   const box = document.getElementById("products");
   box.innerHTML = "";
@@ -750,7 +762,7 @@ function renderProducts(list){
   list.forEach(p=>{
     box.innerHTML += `
       <div class="card simple-card" onclick="showProductDetails(${p.id})">
-        <img class="product-main-img" src="${p.images[0]}">
+        <img class="product-main-img" src="${getProductImageUrl(p.images[0])}">
         <div class="simple-price">${formatShopPrice(p.price)}</div>
       </div>`;
   });
@@ -781,7 +793,8 @@ function showProductDetails(id){
   detailProduct = products.find(item => item.id === id);
   detailIndex = 0;
 
-  document.getElementById("detailMainImage").src = detailProduct.images[detailIndex];
+  document.getElementById("detailMainImage").src =
+  getProductImageUrl(detailProduct.images[detailIndex]);
   document.getElementById("detailName").innerText = detailProduct.name;
   document.getElementById("detailPrice").innerText =
   formatShopPrice(detailProduct.price);
@@ -821,7 +834,7 @@ function changeDetailImage(direction){
     detailIndex = 0;
   }
 
-  document.getElementById("detailMainImage").src = detailProduct.images[detailIndex];
+  document.getElementById("detailMainImage").src = getProductImageUrl(detailProduct.images[detailIndex]);
 }
 
 function closeProductDetails(){

@@ -232,6 +232,29 @@ border-radius:15px;
     font-size:24px;
   }
 }
+/* DJIBY SHOP — Photos supplémentaires */
+
+#detailOtherPhotos{
+  margin-top:25px;
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+}
+
+#detailOtherPhotos img{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:12px;
+  background:#f7f7f7;
+}
+
+#detailOtherPhotos .photos-title{
+  font-size:19px;
+  font-weight:800;
+  margin:10px 0;
+}
+
 </style>
 </head>
 
@@ -370,6 +393,9 @@ border-radius:15px;
 >
   🛒 Ajouter au panier
 </button>
+<!-- DJIBY SHOP : autres photos du produit -->
+<div id="detailOtherPhotos"></div>
+
   </div>
 </div>
 
@@ -1008,6 +1034,37 @@ function showProductDetails(id){
   detailProduct = products.find(item => item.id === id);
   if (!detailProduct) return;
   detailIndex = 0;
+
+  // Afficher les autres photos sous le panier
+const otherPhotos = document.getElementById("detailOtherPhotos");
+
+otherPhotos.innerHTML = "";
+
+const images = Array.isArray(detailProduct.images)
+  ? detailProduct.images
+  : [];
+
+if(images.length > 1){
+
+  const title = document.createElement("h3");
+  title.className = "photos-title";
+  title.textContent = " Autres photos du produit";
+
+  otherPhotos.appendChild(title);
+
+  images.slice(1).forEach(imagePath => {
+
+    const img = document.createElement("img");
+
+    img.src = getProductImageUrl(imagePath);
+    img.alt = detailProduct.name || "Photo du produit";
+    img.loading = "lazy";
+
+    otherPhotos.appendChild(img);
+
+  });
+
+}
 
   document.getElementById("detailMainImage").src =
   getProductImageUrl(detailProduct.images[detailIndex]);
